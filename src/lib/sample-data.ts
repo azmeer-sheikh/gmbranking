@@ -156,6 +156,15 @@ export const generateKeywordsForCategory = (categoryId: string, locationId: stri
     const variance = 0.8 + Math.random() * 0.4;
     const currentRank = Math.floor(Math.random() * 20) + 1;
     
+    // Generate competitor rankings (usually better than client's rank to show opportunity)
+    const generateCompetitorRank = () => {
+      // 80% chance of having a rank in top 10, 20% chance of no rank or low rank
+      if (Math.random() > 0.2) {
+        return Math.floor(Math.random() * 10) + 1; // Rank 1-10
+      }
+      return undefined;
+    };
+    
     return {
       id: `kw-${categoryId}-${locationId}-${index}`,
       keyword: template.keyword.replace('[city]', location?.city || 'Los Angeles'),
@@ -165,7 +174,10 @@ export const generateKeywordsForCategory = (categoryId: string, locationId: stri
       cpc: template.cpc,
       difficulty: template.difficulty,
       locationId,
-      category: categoryId
+      category: categoryId,
+      competitor1Rank: generateCompetitorRank(),
+      competitor2Rank: generateCompetitorRank(),
+      competitor3Rank: generateCompetitorRank(),
     };
   });
 };
