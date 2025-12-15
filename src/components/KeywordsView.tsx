@@ -121,19 +121,17 @@ export default function KeywordsView({ category, keywords }: KeywordsViewProps) 
       </div>
 
       {/* Top Competitors Performance */}
-      {selectedClient?.avg_job_price && (
-        <CompetitorPerformance 
-          keywords={filteredKeywords.map(kw => ({
-            keyword: kw.keyword,
-            search_volume: kw.searchVolume,
-            cpc: kw.cpc,
-            competitor_1: kw.competitor1Rank || null,
-            competitor_2: kw.competitor2Rank || null,
-            competitor_3: kw.competitor3Rank || null,
-          }))}
-          avgJobPrice={selectedClient.avg_job_price}
-        />
-      )}
+      <CompetitorPerformance 
+        keywords={filteredKeywords.map(kw => ({
+          keyword: kw.keyword,
+          search_volume: kw.searchVolume,
+          cpc: kw.cpc,
+          competitor_1: kw.competitor1Rank || null,
+          competitor_2: kw.competitor2Rank || null,
+          competitor_3: kw.competitor3Rank || null,
+        }))}
+        avgJobPrice={selectedClient?.avg_job_price || 500}
+      />
 
       {/* Filters & Controls */}
       <Card className="p-4">
