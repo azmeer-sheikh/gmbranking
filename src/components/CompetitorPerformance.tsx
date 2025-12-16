@@ -15,6 +15,9 @@ interface KeywordData {
 interface CompetitorPerformanceProps {
   keywords: KeywordData[];
   avgJobPrice: number;
+  competitor1Name?: string;
+  competitor2Name?: string;
+  competitor3Name?: string;
 }
 
 // Click-through rates by position (industry standard)
@@ -86,7 +89,7 @@ const calculateCompetitorProfit = (
   };
 };
 
-export default function CompetitorPerformance({ keywords, avgJobPrice }: CompetitorPerformanceProps) {
+export default function CompetitorPerformance({ keywords, avgJobPrice, competitor1Name, competitor2Name, competitor3Name }: CompetitorPerformanceProps) {
   // Calculate performance for all 3 competitors
   const competitor1 = calculateCompetitorProfit(keywords, 1, avgJobPrice);
   const competitor2 = calculateCompetitorProfit(keywords, 2, avgJobPrice);
@@ -94,9 +97,9 @@ export default function CompetitorPerformance({ keywords, avgJobPrice }: Competi
 
   // Sort competitors by profit
   const competitors = [
-    { name: 'Competitor #1', data: competitor1, color: 'bg-amber-500', textColor: 'text-amber-700', bgColor: 'bg-amber-50' },
-    { name: 'Competitor #2', data: competitor2, color: 'bg-orange-500', textColor: 'text-orange-700', bgColor: 'bg-orange-50' },
-    { name: 'Competitor #3', data: competitor3, color: 'bg-red-500', textColor: 'text-red-700', bgColor: 'bg-red-50' },
+    { name: competitor1Name || 'Competitor #1', data: competitor1, color: 'bg-amber-500', textColor: 'text-amber-700', bgColor: 'bg-amber-50' },
+    { name: competitor2Name || 'Competitor #2', data: competitor2, color: 'bg-orange-500', textColor: 'text-orange-700', bgColor: 'bg-orange-50' },
+    { name: competitor3Name || 'Competitor #3', data: competitor3, color: 'bg-red-500', textColor: 'text-red-700', bgColor: 'bg-red-50' },
   ].sort((a, b) => b.data.profit - a.data.profit);
 
   // Check if we have any competitor data

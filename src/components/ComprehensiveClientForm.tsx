@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -120,6 +120,9 @@ export interface ComprehensiveFormData {
   avgJobPrice?: number;
   manualTop3Count?: number; // Manual top 3 rankings count
   manualTop10Count?: number; // Manual top 10 rankings count
+  competitor1Name?: string; // Custom name for Competitor 1
+  competitor2Name?: string; // Custom name for Competitor 2
+  competitor3Name?: string; // Custom name for Competitor 3
   
   // Step 2: Service Areas (Map View)
   serviceAreas: ServiceArea[];
@@ -177,6 +180,9 @@ export default function ComprehensiveClientForm({ globalKeywords, onSubmit, onCa
     avgJobPrice: initialData?.avgJobPrice,
     manualTop3Count: initialData?.manualTop3Count,
     manualTop10Count: initialData?.manualTop10Count,
+    competitor1Name: initialData?.competitor1Name,
+    competitor2Name: initialData?.competitor2Name,
+    competitor3Name: initialData?.competitor3Name,
     serviceAreas: initialData?.serviceAreas || [],
     selectedKeywordIds: initialData?.selectedKeywordIds || [],
     keywordCpcOverrides: initialData?.keywordCpcOverrides || {},
@@ -242,6 +248,74 @@ export default function ComprehensiveClientForm({ globalKeywords, onSubmit, onCa
     period_start: '',
     period_end: '',
   });
+
+  // Reset form when initialData changes (e.g., when opening new form vs edit form)
+  useEffect(() => {
+    setFormData({
+      businessName: initialData?.businessName || '',
+      area: initialData?.area || '',
+      location: initialData?.location || '',
+      category: initialData?.category || '',
+      phoneNumber: initialData?.phoneNumber || '',
+      address: initialData?.address || '',
+      gbpScore: initialData?.gbpScore || 85,
+      avgJobPrice: initialData?.avgJobPrice,
+      manualTop3Count: initialData?.manualTop3Count,
+      manualTop10Count: initialData?.manualTop10Count,
+      competitor1Name: initialData?.competitor1Name,
+      competitor2Name: initialData?.competitor2Name,
+      competitor3Name: initialData?.competitor3Name,
+      serviceAreas: initialData?.serviceAreas || [],
+      selectedKeywordIds: initialData?.selectedKeywordIds || [],
+      keywordCpcOverrides: initialData?.keywordCpcOverrides || {},
+      analyticsMetrics: initialData?.analyticsMetrics || [],
+      deviceKeywordData: initialData?.deviceKeywordData || [],
+      devicePerformance: initialData?.devicePerformance || {
+        mobile_traffic_percentage: 50,
+        desktop_traffic_percentage: 50,
+        mobile_conversion_rate: 2.5,
+        desktop_conversion_rate: 2.5,
+        avg_job_value: 1000,
+      },
+      seoData: initialData?.seoData || {
+        technical_seo_score: 90,
+        on_page_seo_score: 85,
+        local_seo_score: 78,
+        backlinks_score: 94,
+        mobile_responsive: true,
+        page_speed_score: 85,
+        ssl_valid: true,
+        sitemap_exists: true,
+        robots_txt_valid: true,
+        meta_titles_optimized: true,
+        meta_descriptions_optimized: true,
+        header_tags_proper: false,
+        image_alt_text_percentage: 92,
+        internal_linking_score: 88,
+        nap_consistency_score: 78,
+        local_citations_count: 47,
+        gmb_complete: true,
+        review_rating: 4.7,
+        review_count: 234,
+        total_backlinks: 342,
+        referring_domains: 156,
+        domain_authority: 58,
+        high_quality_links_percentage: 89,
+        toxic_links_percentage: 3,
+      },
+      socialMedia: initialData?.socialMedia || [],
+      socialPosts: initialData?.socialPosts || {},
+      demographics: initialData?.demographics || [
+        { age_group: '25-34', percentage: 38 },
+        { age_group: '35-44', percentage: 32 },
+        { age_group: '45-54', percentage: 20 },
+        { age_group: '55+', percentage: 10 },
+      ],
+      genderFemalePercentage: initialData?.genderFemalePercentage || 58,
+      genderMalePercentage: initialData?.genderMalePercentage || 42,
+    });
+    setCurrentStep(1); // Reset to first step when form data changes
+  }, [initialData]);
 
   const handleNext = () => {
     if (currentStep < STEPS.length) {
@@ -498,6 +572,41 @@ export default function ComprehensiveClientForm({ globalKeywords, onSubmit, onCa
                     onChange={(e) => setFormData({ ...formData, manualTop10Count: e.target.value ? parseInt(e.target.value) : undefined })}
                     placeholder="Leave empty for auto-calculate"
                   />
+                </div>
+              </div>
+
+              {/* Competitor Names */}
+              <div>
+                <Label className="text-sm mb-2 block" style={{ fontWeight: 600 }}>Competitor Names (Optional)</Label>
+                <p className="text-xs text-slate-500 mb-3">Customize the display names for your competitors instead of "Competitor 1, 2, 3"</p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div>
+                    <Label htmlFor="competitor1Name" className="text-xs">Competitor 1 Name</Label>
+                    <Input
+                      id="competitor1Name"
+                      value={formData.competitor1Name || ''}
+                      onChange={(e) => setFormData({ ...formData, competitor1Name: e.target.value })}
+                      placeholder="e.g., ABC Movers"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="competitor2Name" className="text-xs">Competitor 2 Name</Label>
+                    <Input
+                      id="competitor2Name"
+                      value={formData.competitor2Name || ''}
+                      onChange={(e) => setFormData({ ...formData, competitor2Name: e.target.value })}
+                      placeholder="e.g., Smith Moving"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="competitor3Name" className="text-xs">Competitor 3 Name</Label>
+                    <Input
+                      id="competitor3Name"
+                      value={formData.competitor3Name || ''}
+                      onChange={(e) => setFormData({ ...formData, competitor3Name: e.target.value })}
+                      placeholder="e.g., Quick Logistics"
+                    />
+                  </div>
                 </div>
               </div>
             </div>

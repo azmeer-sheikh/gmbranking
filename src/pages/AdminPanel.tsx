@@ -236,6 +236,9 @@ export default function AdminPanel() {
           avgJobPrice: client.avg_job_price,
           manualTop3Count: client.manual_top3_count,
           manualTop10Count: client.manual_top10_count,
+          competitor1Name: client.competitor_1_name,
+          competitor2Name: client.competitor_2_name,
+          competitor3Name: client.competitor_3_name,
           serviceAreas: comprehensiveData.service_areas || [],
           selectedKeywordIds: keywordIds,
           keywordCpcOverrides: keywordCpcOverrides,
@@ -702,7 +705,11 @@ export default function AdminPanel() {
                   Quick Add
                 </Button>
                 <Button
-                  onClick={() => setShowComprehensiveForm(true)}
+                  onClick={() => {
+                    setEditingClientData(null); // Clear any previous data
+                    setEditingClientId(null);
+                    setShowComprehensiveForm(true);
+                  }}
                   className="gap-2 bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-600 hover:to-amber-700"
                 >
                   <Plus className="size-4" />
@@ -1402,7 +1409,11 @@ export default function AdminPanel() {
         <ComprehensiveClientForm
           globalKeywords={globalKeywords}
           onSubmit={handleComprehensiveSubmit}
-          onCancel={() => setShowComprehensiveForm(false)}
+          onCancel={() => {
+            setShowComprehensiveForm(false);
+            setEditingClientData(null);
+            setEditingClientId(null);
+          }}
           initialData={editingClientData}
         />
       )}

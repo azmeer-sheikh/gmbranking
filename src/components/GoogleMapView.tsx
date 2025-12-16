@@ -18,9 +18,13 @@ interface GoogleMapViewProps {
   manualGmbScore?: number; // Manual GMB score input
   manualTop3Count?: number; // Manual top 3 rankings input
   manualTop10Count?: number; // Manual top 10 rankings input
+  competitor1Name?: string | null;
+  competitor2Name?: string | null;
+  competitor3Name?: string | null;
+  serviceAreas?: any; // Service areas data
 }
 
-const GoogleMapView = React.memo(function GoogleMapView({ category, keywords, clientLocation, clientAddress, avgJobPrice, manualGmbScore, manualTop3Count, manualTop10Count }: GoogleMapViewProps) {
+const GoogleMapView = React.memo(function GoogleMapView({ category, keywords, clientLocation, clientAddress, avgJobPrice, manualGmbScore, manualTop3Count, manualTop10Count, competitor1Name, competitor2Name, competitor3Name, serviceAreas }: GoogleMapViewProps) {
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [mapsLoaded, setMapsLoaded] = useState(false);
   const [mapsError, setMapsError] = useState<string | null>(null);
@@ -536,7 +540,13 @@ const GoogleMapView = React.memo(function GoogleMapView({ category, keywords, cl
       </Card>
 
       {/* Top Competitors Performance */}
-      <CompetitorProfitCards keywords={keywords} avgJobPrice={avgJobPrice} />
+      <CompetitorProfitCards 
+        keywords={keywords} 
+        avgJobPrice={avgJobPrice} 
+        competitor1Name={competitor1Name}
+        competitor2Name={competitor2Name}
+        competitor3Name={competitor3Name}
+      />
 
       {/* Location Info & Keywords */}
       {clientLocation && (

@@ -95,6 +95,27 @@ BEGIN
   ) THEN
     ALTER TABLE clients ADD COLUMN manual_top10_count INTEGER DEFAULT NULL;
   END IF;
+  
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'clients' AND column_name = 'competitor_1_name'
+  ) THEN
+    ALTER TABLE clients ADD COLUMN competitor_1_name TEXT DEFAULT NULL;
+  END IF;
+  
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'clients' AND column_name = 'competitor_2_name'
+  ) THEN
+    ALTER TABLE clients ADD COLUMN competitor_2_name TEXT DEFAULT NULL;
+  END IF;
+  
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'clients' AND column_name = 'competitor_3_name'
+  ) THEN
+    ALTER TABLE clients ADD COLUMN competitor_3_name TEXT DEFAULT NULL;
+  END IF;
 END $$;
 
 -- Create client keywords table (many-to-many relationship)

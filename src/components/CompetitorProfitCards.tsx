@@ -7,6 +7,9 @@ import { Keyword } from '../lib/types';
 interface CompetitorProfitCardsProps {
   keywords: Keyword[];
   avgJobPrice?: number;
+  competitor1Name?: string | null;
+  competitor2Name?: string | null;
+  competitor3Name?: string | null;
 }
 
 interface CompetitorStats {
@@ -17,7 +20,12 @@ interface CompetitorStats {
   keywordsTracked: number;
 }
 
-export default function CompetitorProfitCards({ keywords, avgJobPrice = 0 }: CompetitorProfitCardsProps) {
+export default function CompetitorProfitCards({ keywords, avgJobPrice = 0, competitor1Name, competitor2Name, competitor3Name }: CompetitorProfitCardsProps) {
+  // Use provided names or fall back to defaults
+  const comp1Name = competitor1Name || 'Competitor 1';
+  const comp2Name = competitor2Name || 'Competitor 2';
+  const comp3Name = competitor3Name || 'Competitor 3';
+
   // CTR based on rank position (same as used in revenue calculations)
   const getCTRByRank = (rank: number): number => {
     if (rank === 1) return 0.30;
@@ -31,16 +39,16 @@ export default function CompetitorProfitCards({ keywords, avgJobPrice = 0 }: Com
   // Calculate competitor profits
   const calculateCompetitorProfits = (): CompetitorStats[] => {
     const competitorData: { [key: string]: { profit: number; ranks: number[]; keywords: number } } = {
-      'Competitor 1': { profit: 0, ranks: [], keywords: 0 },
-      'Competitor 2': { profit: 0, ranks: [], keywords: 0 },
-      'Competitor 3': { profit: 0, ranks: [], keywords: 0 },
+      [comp1Name]: { profit: 0, ranks: [], keywords: 0 },
+      [comp2Name]: { profit: 0, ranks: [], keywords: 0 },
+      [comp3Name]: { profit: 0, ranks: [], keywords: 0 },
     };
 
     keywords.forEach(kw => {
       // Competitor 1
       if (kw.competitor1Rank && kw.competitor1Rank > 0 && kw.competitor1Rank <= 20) {
-        competitorData['Competitor 1'].keywords++;
-        competitorData['Competitor 1'].ranks.push(kw.competitor1Rank);
+        competitorData[comp1Name].keywords++;
+        competitorData[comp1Name].ranks.push(kw.competitor1Rank);
         
         // Calculate revenue based on competitor's rank position
         const ctr = getCTRByRank(kw.competitor1Rank);
@@ -48,33 +56,33 @@ export default function CompetitorProfitCards({ keywords, avgJobPrice = 0 }: Com
         const clicks = kw.searchVolume * ctr;
         const conversions = clicks * conversionRate;
         const monthlyRevenue = conversions * avgJobPrice;
-        competitorData['Competitor 1'].profit += monthlyRevenue;
+        competitorData[comp1Name].profit += monthlyRevenue;
       }
 
       // Competitor 2
       if (kw.competitor2Rank && kw.competitor2Rank > 0 && kw.competitor2Rank <= 20) {
-        competitorData['Competitor 2'].keywords++;
-        competitorData['Competitor 2'].ranks.push(kw.competitor2Rank);
+        competitorData[comp2Name].keywords++;
+        competitorData[comp2Name].ranks.push(kw.competitor2Rank);
         
         const ctr = getCTRByRank(kw.competitor2Rank);
         const conversionRate = 0.005;
         const clicks = kw.searchVolume * ctr;
         const conversions = clicks * conversionRate;
         const monthlyRevenue = conversions * avgJobPrice;
-        competitorData['Competitor 2'].profit += monthlyRevenue;
+        competitorData[comp2Name].profit += monthlyRevenue;
       }
 
       // Competitor 3
       if (kw.competitor3Rank && kw.competitor3Rank > 0 && kw.competitor3Rank <= 20) {
-        competitorData['Competitor 3'].keywords++;
-        competitorData['Competitor 3'].ranks.push(kw.competitor3Rank);
+        competitorData[comp3Name].keywords++;
+        competitorData[comp3Name].ranks.push(kw.competitor3Rank);
         
         const ctr = getCTRByRank(kw.competitor3Rank);
         const conversionRate = 0.005;
         const clicks = kw.searchVolume * ctr;
         const conversions = clicks * conversionRate;
         const monthlyRevenue = conversions * avgJobPrice;
-        competitorData['Competitor 3'].profit += monthlyRevenue;
+        competitorData[comp3Name].profit += monthlyRevenue;
       }
     });
 
@@ -218,12 +226,16 @@ export default function CompetitorProfitCards({ keywords, avgJobPrice = 0 }: Com
             </div>
 
             {/* Profit */}
-            <div className="mb-4 p-4 rounded-lg" style={{ backgroundColor: '#FEF2F2' }}>
+            <div className="text-start p-2 bg-green-50 rounded relative">
+              {/* Trending Icon - Top Right */}
+              <div className="absolute top-2 right-2">
+                <TrendingUp className="size-4 text-green-600" />
+              </div>
               <div className="flex items-center gap-2 mb-1">
-                <DollarSign className="size-4 text-red-600" />
+                <DollarSign className="size-4 text-green-600" />
                 <span className="text-xs text-slate-600">Estimated Monthly Gain</span>
               </div>
-              <p className="text-3xl" style={{ fontWeight: 700, color: '#DC2626' }}>
+              <p className="text-3xl text-green-600" style={{ fontWeight: 700 }}>
                 ${comp.totalProfit.toLocaleString()}
               </p>
             </div>
@@ -260,6 +272,9 @@ export default function CompetitorProfitCards({ keywords, avgJobPrice = 0 }: Com
           </Card>
         ))}
       </div>
+
+      {/* Info Box */}
+      
     </div>
   );
 }

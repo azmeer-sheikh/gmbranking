@@ -555,6 +555,10 @@
     top: 50%;
   }
 
+  .top-2 {
+    top: calc(var(--spacing) * 2);
+  }
+
   .top-3 {
     top: calc(var(--spacing) * 3);
   }
@@ -2094,6 +2098,10 @@
 
   .text-right {
     text-align: right;
+  }
+
+  .text-start {
+    text-align: start;
   }
 
   .text-2xl {

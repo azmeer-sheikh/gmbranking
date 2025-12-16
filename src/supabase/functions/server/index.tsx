@@ -1228,6 +1228,9 @@ app.post("/make-server-dc7dce20/comprehensive-clients", async (c) => {
       avg_job_price: data.avgJobPrice || null,
       manual_top3_count: data.manualTop3Count || null,
       manual_top10_count: data.manualTop10Count || null,
+      competitor_1_name: data.competitor1Name || null,
+      competitor_2_name: data.competitor2Name || null,
+      competitor_3_name: data.competitor3Name || null,
     });
     
     if (clientError) {
@@ -1388,6 +1391,9 @@ app.put("/make-server-dc7dce20/comprehensive-clients/:id", async (c) => {
     if (data.avgJobPrice !== undefined) clientUpdates.avg_job_price = data.avgJobPrice;
     if (data.manualTop3Count !== undefined) clientUpdates.manual_top3_count = data.manualTop3Count;
     if (data.manualTop10Count !== undefined) clientUpdates.manual_top10_count = data.manualTop10Count;
+    if (data.competitor1Name !== undefined) clientUpdates.competitor_1_name = data.competitor1Name;
+    if (data.competitor2Name !== undefined) clientUpdates.competitor_2_name = data.competitor2Name;
+    if (data.competitor3Name !== undefined) clientUpdates.competitor_3_name = data.competitor3Name;
     
     if (Object.keys(clientUpdates).length > 0) {
       const { error: clientError } = await supabase

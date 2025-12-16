@@ -210,6 +210,7 @@ export default function MainApp() {
                 <p className="text-xl text-red-600 mt-1" style={{ fontWeight: 700, color: '#FF3B30' }}>-${calculateTotalRevenueLoss().toLocaleString()}</p>
                 <p className="text-xs text-red-500 mt-1">${calculateYearlyRevenue().toLocaleString()}/year</p>
               </div> 
+            
             </div>
           </div>
         </div>
@@ -502,6 +503,9 @@ export default function MainApp() {
               manualTop3Count={selectedClient?.manual_top3_count}
               manualTop10Count={selectedClient?.manual_top10_count}
               serviceAreas={selectedClientServiceAreas}
+              competitor1Name={selectedClient?.competitor_1_name}
+              competitor2Name={selectedClient?.competitor_2_name}
+              competitor3Name={selectedClient?.competitor_3_name}
             />
           </div>
 

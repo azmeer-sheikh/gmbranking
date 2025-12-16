@@ -29,6 +29,11 @@ export default function KeywordsView({ category, keywords }: KeywordsViewProps) 
   
   // Get client data from context
   const { selectedClient } = useClient();
+  
+  // Get custom competitor names or use defaults
+  const competitor1Name = selectedClient?.competitor_1_name || 'Competitor 1';
+  const competitor2Name = selectedClient?.competitor_2_name || 'Competitor 2';
+  const competitor3Name = selectedClient?.competitor_3_name || 'Competitor 3';
 
   // Calculate competitor average ranks
   const calculateCompetitorAvgRank = (competitorNum: 1 | 2 | 3) => {
@@ -158,6 +163,9 @@ export default function KeywordsView({ category, keywords }: KeywordsViewProps) 
             competitor_3: kw.competitor3Rank || null,
           }))}
           avgJobPrice={selectedClient.avg_job_price}
+          competitor1Name={competitor1Name}
+          competitor2Name={competitor2Name}
+          competitor3Name={competitor3Name}
         />
       )}
 
@@ -167,7 +175,7 @@ export default function KeywordsView({ category, keywords }: KeywordsViewProps) 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-slate-50 p-4 rounded-lg">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-slate-600">Competitor 1</span>
+              <span className="text-sm text-slate-600">{competitor1Name}</span>
               <Users className="size-4 text-slate-400" />
             </div>
             <div className="flex items-baseline gap-3">
@@ -187,7 +195,7 @@ export default function KeywordsView({ category, keywords }: KeywordsViewProps) 
 
           <div className="bg-slate-50 p-4 rounded-lg">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-slate-600">Competitor 2</span>
+              <span className="text-sm text-slate-600">{competitor2Name}</span>
               <Users className="size-4 text-slate-400" />
             </div>
             <div className="flex items-baseline gap-3">
@@ -207,7 +215,7 @@ export default function KeywordsView({ category, keywords }: KeywordsViewProps) 
 
           <div className="bg-slate-50 p-4 rounded-lg">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-slate-600">Competitor 3</span>
+              <span className="text-sm text-slate-600">{competitor3Name}</span>
               <Users className="size-4 text-slate-400" />
             </div>
             <div className="flex items-baseline gap-3">
@@ -294,9 +302,9 @@ export default function KeywordsView({ category, keywords }: KeywordsViewProps) 
                 <th className="text-left px-6 py-4 text-sm text-slate-600">Search Volume</th>
                 <th className="text-left px-6 py-4 text-sm text-slate-600">Current Rank</th>
                 <th className="text-left px-6 py-4 text-sm text-slate-600">Target Rank</th>
-                <th className="text-left px-6 py-4 text-sm text-slate-600">Competitor 1</th>
-                <th className="text-left px-6 py-4 text-sm text-slate-600">Competitor 2</th>
-                <th className="text-left px-6 py-4 text-sm text-slate-600">Competitor 3</th>
+                <th className="text-left px-6 py-4 text-sm text-slate-600">{competitor1Name}</th>
+                <th className="text-left px-6 py-4 text-sm text-slate-600">{competitor2Name}</th>
+                <th className="text-left px-6 py-4 text-sm text-slate-600">{competitor3Name}</th>
                 <th className="text-left px-6 py-4 text-sm text-slate-600">Revenue Loss</th>
                 <th className="text-left px-6 py-4 text-sm text-slate-600">Actions</th>
               </tr>
@@ -452,11 +460,6 @@ export default function KeywordsView({ category, keywords }: KeywordsViewProps) 
               <DialogTitle>Competitor Analysis & Revenue Opportunity</DialogTitle>
             </DialogHeader>
             <CompetitorAnalysis 
-              keyword={selectedKeyword}
-              avgJobValue={category?.avgJobValue || 500}
-              conversionRate={category?.conversionRate || 0.05}
-            />
-            <CompetitorPerformance 
               keyword={selectedKeyword}
               avgJobValue={category?.avgJobValue || 500}
               conversionRate={category?.conversionRate || 0.05}

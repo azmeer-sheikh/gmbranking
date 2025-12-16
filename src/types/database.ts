@@ -26,6 +26,9 @@ export interface Client {
   damage_score: number;
   avg_rank?: number | null;
   avg_job_price?: number | null;
+  competitor_1_name?: string | null;
+  competitor_2_name?: string | null;
+  competitor_3_name?: string | null;
   created_at: string;
   updated_at: string;
 }
