@@ -260,13 +260,6 @@ export default function CompetitorProfitCards({ keywords, avgJobPrice = 0 }: Com
           </Card>
         ))}
       </div>
-
-      {/* Info Box */}
-      <Card className="p-4 bg-blue-50 border-blue-200">
-        <p className="text-sm text-blue-900">
-          <strong>How it's calculated:</strong> These estimates show revenue competitors are capturing by ranking better than you for tracked keywords. Based on 0.5% conversion rate and your average job price of ${avgJobPrice.toLocaleString()}.
-        </p>
-      </Card>
     </div>
   );
 }
