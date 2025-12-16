@@ -26,6 +26,22 @@ export default function CompetitorProfitCards({ keywords, avgJobPrice = 0, compe
   const comp2Name = competitor2Name || 'Competitor 2';
   const comp3Name = competitor3Name || 'Competitor 3';
 
+  // Debug logging
+  console.log('🔍 CompetitorProfitCards Debug:', {
+    keywordsCount: keywords.length,
+    avgJobPrice,
+    sampleKeywords: keywords.slice(0, 3).map(k => ({
+      keyword: k.keyword,
+      competitor1Rank: k.competitor1Rank,
+      competitor2Rank: k.competitor2Rank,
+      competitor3Rank: k.competitor3Rank,
+      searchVolume: k.searchVolume,
+    })),
+    competitor1Name: comp1Name,
+    competitor2Name: comp2Name,
+    competitor3Name: comp3Name,
+  });
+
   // CTR based on rank position (same as used in revenue calculations)
   const getCTRByRank = (rank: number): number => {
     if (rank === 1) return 0.30;
@@ -108,6 +124,11 @@ export default function CompetitorProfitCards({ keywords, avgJobPrice = 0, compe
         avgRank: data.ranks.length > 0 ? Math.round(data.ranks.reduce((sum, r) => sum + r, 0) / data.ranks.length) : 0,
         keywordsTracked: data.keywords,
       };
+    });
+
+    console.log('📊 Competitor Calculations:', {
+      competitorData,
+      competitors,
     });
 
     return competitors;

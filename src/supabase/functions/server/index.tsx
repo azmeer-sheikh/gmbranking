@@ -1064,31 +1064,55 @@ app.post("/make-server-dc7dce20/bulk-import/keywords", async (c) => {
           console.log('Created new global keyword:', keywordData.keyword);
         }
 
-        // Now create client keyword link
-        const { error: clientKeywordError } = await supabase
+        // Now create or update client keyword link
+        // First check if it already exists
+        const { data: existingClientKeyword } = await supabase
           .from('client_keywords')
-          .insert({
-            client_id: client.id,
-            keyword_id: globalKeywordId,
-            current_rank: keywordData.current_rank || 20,
-            target_rank: keywordData.target_rank || 1,
-            search_volume: keywordData.search_volume || 0,
-            cpc: keywordData.cpc || 0,
-            competitor_1: keywordData.competitor_1 || null,
-            competitor_2: keywordData.competitor_2 || null,
-            competitor_3: keywordData.competitor_3 || null,
-          });
+          .select('id')
+          .eq('client_id', client.id)
+          .eq('keyword_id', globalKeywordId)
+          .single();
 
-        if (clientKeywordError) {
-          // Check if this is a duplicate key error
-          if (clientKeywordError.code === '23505') {
-            console.log('Keyword already assigned to client, skipping:', keywordData.keyword, 'for client:', client.business_name);
-            successCount++;
-          } else {
-            throw new Error(clientKeywordError.message);
+        if (existingClientKeyword) {
+          // Update existing client keyword with new data
+          const { error: updateError } = await supabase
+            .from('client_keywords')
+            .update({
+              current_rank: keywordData.current_rank || 20,
+              target_rank: keywordData.target_rank || 1,
+              search_volume: keywordData.search_volume || 0,
+              cpc: keywordData.cpc || 0,
+              competitor_1: keywordData.competitor_1 !== undefined ? keywordData.competitor_1 : null,
+              competitor_2: keywordData.competitor_2 !== undefined ? keywordData.competitor_2 : null,
+              competitor_3: keywordData.competitor_3 !== undefined ? keywordData.competitor_3 : null,
+            })
+            .eq('id', existingClientKeyword.id);
+
+          if (updateError) {
+            throw new Error(`Failed to update client keyword: ${updateError.message}`);
           }
+          console.log('Updated existing client keyword:', keywordData.keyword, 'for client:', client.business_name, 'with competitors:', keywordData.competitor_1, keywordData.competitor_2, keywordData.competitor_3);
+          successCount++;
         } else {
-          console.log('Successfully saved keyword:', keywordData.keyword, 'for client:', client.business_name);
+          // Create new client keyword link
+          const { error: clientKeywordError } = await supabase
+            .from('client_keywords')
+            .insert({
+              client_id: client.id,
+              keyword_id: globalKeywordId,
+              current_rank: keywordData.current_rank || 20,
+              target_rank: keywordData.target_rank || 1,
+              search_volume: keywordData.search_volume || 0,
+              cpc: keywordData.cpc || 0,
+              competitor_1: keywordData.competitor_1 !== undefined ? keywordData.competitor_1 : null,
+              competitor_2: keywordData.competitor_2 !== undefined ? keywordData.competitor_2 : null,
+              competitor_3: keywordData.competitor_3 !== undefined ? keywordData.competitor_3 : null,
+            });
+
+          if (clientKeywordError) {
+            throw new Error(`Failed to create client keyword: ${clientKeywordError.message}`);
+          }
+          console.log('Successfully created keyword:', keywordData.keyword, 'for client:', client.business_name, 'with competitors:', keywordData.competitor_1, keywordData.competitor_2, keywordData.competitor_3);
           successCount++;
         }
       } catch (error) {
