@@ -95,12 +95,15 @@ export default function CompetitorPerformance({ keywords, avgJobPrice, competito
   const competitor2 = calculateCompetitorProfit(keywords, 2, avgJobPrice);
   const competitor3 = calculateCompetitorProfit(keywords, 3, avgJobPrice);
 
-  // Always display competitors in order, no sorting - keep original order 
-  const competitors = [
+  // Sort competitors by profit (highest to lowest)
+  const competitorsData = [
     { name: competitor1Name || 'Competitor #1', data: competitor1, color: 'bg-amber-500', textColor: 'text-amber-700', bgColor: 'bg-amber-50' },
     { name: competitor2Name || 'Competitor #2', data: competitor2, color: 'bg-orange-500', textColor: 'text-orange-700', bgColor: 'bg-orange-50' },
     { name: competitor3Name || 'Competitor #3', data: competitor3, color: 'bg-red-500', textColor: 'text-red-700', bgColor: 'bg-red-50' },
   ];
+
+  // Sort by profit in descending order (highest profit first)
+  const competitors = competitorsData.sort((a, b) => b.data.profit - a.data.profit);
 
   // Check if we have any competitor data
   const hasData = competitors.some(c => c.data.profit > 0);

@@ -61,6 +61,17 @@ export default function KeywordsView({ category, keywords }: KeywordsViewProps) 
     return topRanks.length;
   };
 
+  // Debug logging
+  console.log('🔍 KeywordsView Debug:', {
+    totalKeywords: keywords.length,
+    sampleKeywords: keywords.slice(0, 3).map(k => ({
+      keyword: k.keyword,
+      competitor1Rank: k.competitor1Rank,
+      competitor2Rank: k.competitor2Rank,
+      competitor3Rank: k.competitor3Rank,
+    })),
+  });
+
   const filteredKeywords = keywords
     .filter(kw => {
       const matchesSearch = kw.keyword?.toLowerCase().includes(searchQuery.toLowerCase());
