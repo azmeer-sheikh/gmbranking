@@ -151,23 +151,21 @@ export default function KeywordsView({ category, keywords }: KeywordsViewProps) 
         </Card>
       </div>
 
-      {/* Top Competitors Performance */}
-      {selectedClient?.avg_job_price && (
-        <CompetitorPerformance 
-          keywords={filteredKeywords.map(kw => ({
-            keyword: kw.keyword,
-            search_volume: kw.searchVolume,
-            cpc: kw.cpc,
-            competitor_1: kw.competitor1Rank || null,
-            competitor_2: kw.competitor2Rank || null,
-            competitor_3: kw.competitor3Rank || null,
-          }))}
-          avgJobPrice={selectedClient.avg_job_price}
-          competitor1Name={competitor1Name}
-          competitor2Name={competitor2Name}
-          competitor3Name={competitor3Name}
-        />
-      )}
+      {/* Top Competitors Performance - Always visible with competitor names from database */}
+      <CompetitorPerformance 
+        keywords={filteredKeywords.map(kw => ({
+          keyword: kw.keyword,
+          search_volume: kw.searchVolume,
+          cpc: kw.cpc,
+          competitor_1: kw.competitor1Rank || null,
+          competitor_2: kw.competitor2Rank || null,
+          competitor_3: kw.competitor3Rank || null,
+        }))}
+        avgJobPrice={selectedClient?.avg_job_price || 500}
+        competitor1Name={competitor1Name}
+        competitor2Name={competitor2Name}
+        competitor3Name={competitor3Name}
+      />
 
       {/* Competitor Average Ranks Summary */}
       <Card className="p-6">
@@ -362,7 +360,7 @@ export default function KeywordsView({ category, keywords }: KeywordsViewProps) 
                         </Badge>
                       </td>
                       <td className="px-6 py-4">
-                        {keyword.competitor1Rank ? (
+                        {keyword.competitor1Rank !== undefined && keyword.competitor1Rank !== null ? (
                           <Badge 
                             variant="secondary"
                             className="border w-fit"
@@ -379,7 +377,7 @@ export default function KeywordsView({ category, keywords }: KeywordsViewProps) 
                         )}
                       </td>
                       <td className="px-6 py-4">
-                        {keyword.competitor2Rank ? (
+                        {keyword.competitor2Rank !== undefined && keyword.competitor2Rank !== null ? (
                           <Badge 
                             variant="secondary"
                             className="border w-fit"
@@ -396,7 +394,7 @@ export default function KeywordsView({ category, keywords }: KeywordsViewProps) 
                         )}
                       </td>
                       <td className="px-6 py-4">
-                        {keyword.competitor3Rank ? (
+                        {keyword.competitor3Rank !== undefined && keyword.competitor3Rank !== null ? (
                           <Badge 
                             variant="secondary"
                             className="border w-fit"

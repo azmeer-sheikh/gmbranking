@@ -45,127 +45,78 @@ export default function CompetitorProfitCards({ keywords, avgJobPrice = 0, compe
     };
 
     keywords.forEach(kw => {
-      // Competitor 1
-      if (kw.competitor1Rank && kw.competitor1Rank > 0 && kw.competitor1Rank <= 20) {
+      // Competitor 1 - check for valid rank (including 0)
+      if (kw.competitor1Rank !== undefined && kw.competitor1Rank !== null && kw.competitor1Rank >= 0 && kw.competitor1Rank <= 20) {
         competitorData[comp1Name].keywords++;
-        competitorData[comp1Name].ranks.push(kw.competitor1Rank);
+        if (kw.competitor1Rank > 0) {
+          competitorData[comp1Name].ranks.push(kw.competitor1Rank);
+        }
         
         // Calculate revenue based on competitor's rank position
-        const ctr = getCTRByRank(kw.competitor1Rank);
-        const conversionRate = 0.005; // 0.5% conversion rate
-        const clicks = kw.searchVolume * ctr;
-        const conversions = clicks * conversionRate;
-        const monthlyRevenue = conversions * avgJobPrice;
-        competitorData[comp1Name].profit += monthlyRevenue;
+        if (kw.competitor1Rank > 0) {
+          const ctr = getCTRByRank(kw.competitor1Rank);
+          const conversionRate = 0.005; // 0.5% conversion rate
+          const clicks = kw.searchVolume * ctr;
+          const conversions = clicks * conversionRate;
+          const monthlyRevenue = conversions * avgJobPrice;
+          competitorData[comp1Name].profit += monthlyRevenue;
+        }
       }
 
-      // Competitor 2
-      if (kw.competitor2Rank && kw.competitor2Rank > 0 && kw.competitor2Rank <= 20) {
+      // Competitor 2 - check for valid rank (including 0)
+      if (kw.competitor2Rank !== undefined && kw.competitor2Rank !== null && kw.competitor2Rank >= 0 && kw.competitor2Rank <= 20) {
         competitorData[comp2Name].keywords++;
-        competitorData[comp2Name].ranks.push(kw.competitor2Rank);
+        if (kw.competitor2Rank > 0) {
+          competitorData[comp2Name].ranks.push(kw.competitor2Rank);
+        }
         
-        const ctr = getCTRByRank(kw.competitor2Rank);
-        const conversionRate = 0.005;
-        const clicks = kw.searchVolume * ctr;
-        const conversions = clicks * conversionRate;
-        const monthlyRevenue = conversions * avgJobPrice;
-        competitorData[comp2Name].profit += monthlyRevenue;
+        if (kw.competitor2Rank > 0) {
+          const ctr = getCTRByRank(kw.competitor2Rank);
+          const conversionRate = 0.005;
+          const clicks = kw.searchVolume * ctr;
+          const conversions = clicks * conversionRate;
+          const monthlyRevenue = conversions * avgJobPrice;
+          competitorData[comp2Name].profit += monthlyRevenue;
+        }
       }
 
-      // Competitor 3
-      if (kw.competitor3Rank && kw.competitor3Rank > 0 && kw.competitor3Rank <= 20) {
+      // Competitor 3 - check for valid rank (including 0)
+      if (kw.competitor3Rank !== undefined && kw.competitor3Rank !== null && kw.competitor3Rank >= 0 && kw.competitor3Rank <= 20) {
         competitorData[comp3Name].keywords++;
-        competitorData[comp3Name].ranks.push(kw.competitor3Rank);
+        if (kw.competitor3Rank > 0) {
+          competitorData[comp3Name].ranks.push(kw.competitor3Rank);
+        }
         
-        const ctr = getCTRByRank(kw.competitor3Rank);
-        const conversionRate = 0.005;
-        const clicks = kw.searchVolume * ctr;
-        const conversions = clicks * conversionRate;
-        const monthlyRevenue = conversions * avgJobPrice;
-        competitorData[comp3Name].profit += monthlyRevenue;
+        if (kw.competitor3Rank > 0) {
+          const ctr = getCTRByRank(kw.competitor3Rank);
+          const conversionRate = 0.005;
+          const clicks = kw.searchVolume * ctr;
+          const conversions = clicks * conversionRate;
+          const monthlyRevenue = conversions * avgJobPrice;
+          competitorData[comp3Name].profit += monthlyRevenue;
+        }
       }
     });
 
-    // Convert to array and calculate averages
-    const competitors: CompetitorStats[] = Object.entries(competitorData)
-      .filter(([_, data]) => data.keywords > 0) // Only include competitors with data
-      .map(([name, data]) => ({
+    // Always return all 3 competitors in original order, regardless of data
+    const competitors: CompetitorStats[] = [comp1Name, comp2Name, comp3Name].map(name => {
+      const data = competitorData[name];
+      return {
         name,
         totalProfit: Math.round(data.profit),
         rankingsWon: data.ranks.filter(r => r <= 3).length, // Count top 3 rankings
         avgRank: data.ranks.length > 0 ? Math.round(data.ranks.reduce((sum, r) => sum + r, 0) / data.ranks.length) : 0,
         keywordsTracked: data.keywords,
-      }))
-      .sort((a, b) => b.totalProfit - a.totalProfit); // Sort by profit (highest first)
+      };
+    });
 
     return competitors;
   };
 
   const competitors = calculateCompetitorProfits();
 
-  // Show placeholder section if no competitor data exists yet
-  if (competitors.length === 0) {
-    return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-slate-900">Top Competitors Performance</h3>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {['Competitor 1', 'Competitor 2', 'Competitor 3'].map((name, index) => (
-            <Card 
-              key={name}
-              className="p-6 relative overflow-hidden opacity-50"
-              style={{
-                borderTop: `4px solid ${index === 0 ? '#FCD34D' : index === 1 ? '#94A3B8' : '#F59E0B'}`,
-              }}
-            >
-              <div className="absolute top-4 right-4">
-                <Trophy className="size-5 text-slate-300" />
-              </div>
-
-              <div className="mb-4">
-                <div className="flex items-center gap-2 mb-1">
-                  <Badge variant="outline" className="text-xs bg-slate-100">
-                    #{index + 1}
-                  </Badge>
-                  <span className="text-xs text-slate-400">Position</span>
-                </div>
-                <h4 className="text-slate-400" style={{ fontWeight: 600 }}>
-                  {name}
-                </h4>
-              </div>
-
-              <div className="mb-4 p-4 rounded-lg bg-slate-50">
-                <div className="flex items-center gap-2 mb-1">
-                  <DollarSign className="size-4 text-slate-400" />
-                  <span className="text-xs text-slate-500">Estimated Monthly Gain</span>
-                </div>
-                <p className="text-3xl text-slate-300" style={{ fontWeight: 700 }}>
-                  $0
-                </p>
-              </div>
-
-              <div className="grid grid-cols-3 gap-2">
-                <div className="text-center p-2 bg-slate-50 rounded">
-                  <p className="text-xs text-slate-400">Avg Rank</p>
-                  <p className="text-lg text-slate-300" style={{ fontWeight: 700 }}>-</p>
-                </div>
-                <div className="text-center p-2 bg-slate-50 rounded">
-                  <p className="text-xs text-slate-400">Top 3</p>
-                  <p className="text-lg text-slate-300" style={{ fontWeight: 700 }}>0</p>
-                </div>
-                <div className="text-center p-2 bg-slate-50 rounded">
-                  <p className="text-xs text-slate-400">Keywords</p>
-                  <p className="text-lg text-slate-300" style={{ fontWeight: 700 }}>0</p>
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
-      </div>
-    );
-  }
+  // Check if we have any data at all
+  const hasAnyData = competitors.some(c => c.keywordsTracked > 0);
 
   const getPositionIcon = (index: number) => {
     if (index === 0) return <Trophy className="size-5 text-yellow-500" />;
@@ -190,8 +141,16 @@ export default function CompetitorProfitCards({ keywords, avgJobPrice = 0, compe
         </Badge>
       </div>
 
+      {!hasAnyData && (
+        <div className="mb-4 p-4 bg-amber-50 rounded-lg border border-amber-200">
+          <p className="text-sm text-amber-800">
+            <strong>Note:</strong> No competitor ranking data available yet. Import keywords with competitor rankings from Excel to see performance analysis.
+          </p>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {competitors.slice(0, 3).map((comp, index) => (
+        {competitors.map((comp, index) => (
           <Card 
             key={comp.name}
             className="p-6 hover:shadow-lg transition-all relative overflow-hidden"

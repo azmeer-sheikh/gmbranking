@@ -95,35 +95,15 @@ export default function CompetitorPerformance({ keywords, avgJobPrice, competito
   const competitor2 = calculateCompetitorProfit(keywords, 2, avgJobPrice);
   const competitor3 = calculateCompetitorProfit(keywords, 3, avgJobPrice);
 
-  // Sort competitors by profit
+  // Always display competitors in order, no sorting - keep original order 
   const competitors = [
     { name: competitor1Name || 'Competitor #1', data: competitor1, color: 'bg-amber-500', textColor: 'text-amber-700', bgColor: 'bg-amber-50' },
     { name: competitor2Name || 'Competitor #2', data: competitor2, color: 'bg-orange-500', textColor: 'text-orange-700', bgColor: 'bg-orange-50' },
     { name: competitor3Name || 'Competitor #3', data: competitor3, color: 'bg-red-500', textColor: 'text-red-700', bgColor: 'bg-red-50' },
-  ].sort((a, b) => b.data.profit - a.data.profit);
+  ];
 
   // Check if we have any competitor data
   const hasData = competitors.some(c => c.data.profit > 0);
-
-  if (!hasData) {
-    return (
-      <Card className="p-6 bg-slate-50 border-slate-200">
-        <div className="flex items-start gap-3">
-          <div className="p-2 rounded-lg bg-slate-100">
-            <Target className="size-5 text-slate-500" />
-          </div>
-          <div>
-            <h3 className="text-slate-900 mb-1" style={{ fontWeight: 600 }}>
-              Top Competitors Performance
-            </h3>
-            <p className="text-sm text-slate-500">
-              No competitor ranking data available. Import keywords with competitor rankings to see profit analysis.
-            </p>
-          </div>
-        </div>
-      </Card>
-    );
-  }
 
   return (
     <Card className="p-6 bg-gradient-to-br from-purple-50 to-blue-50 border-purple-200">
@@ -141,6 +121,14 @@ export default function CompetitorPerformance({ keywords, avgJobPrice, competito
         </div>
       </div>
 
+      {!hasData && (
+        <div className="mb-4 p-4 bg-white/60 rounded-lg border border-purple-200">
+          <p className="text-sm text-slate-600 text-center">
+            <strong>Note:</strong> No competitor ranking data available yet. Import keywords with competitor rankings from Excel to see profit analysis.
+          </p>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {competitors.map((competitor, index) => (
           <Card 
@@ -148,24 +136,15 @@ export default function CompetitorPerformance({ keywords, avgJobPrice, competito
             className={`p-5 ${competitor.bgColor} border-2 hover:shadow-lg transition-all relative overflow-hidden`}
             style={{ borderColor: index === 0 ? '#F59E0B' : index === 1 ? '#F97316' : '#EF4444' }}
           >
-            {/* Rank Badge */}
-            {index === 0 && (
-              <div className="absolute top-3 right-3">
-                <Award className="size-5 text-yellow-500" />
-              </div>
-            )}
-
-            {/* Competitor Name */}
+            {/* Competitor Name - Always show */}
             <div className="flex items-center gap-2 mb-4">
               <div className={`w-2 h-2 rounded-full ${competitor.color}`}></div>
               <h4 className={`${competitor.textColor}`} style={{ fontWeight: 600 }}>
                 {competitor.name}
               </h4>
-              {index < 3 && (
-                <Badge className="ml-auto bg-white/70 text-slate-700 border-0 text-xs">
-                  #{index + 1}
-                </Badge>
-              )}
+              <Badge className="ml-auto bg-white/70 text-slate-700 border-0 text-xs">
+                #{index + 1}
+              </Badge>
             </div>
 
             {/* Profit */}
