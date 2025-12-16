@@ -331,20 +331,20 @@ export const validateKeywordData = (data: any[]): { valid: boolean; errors: stri
   data.forEach((row, index) => {
     const rowNum = index + 2;
 
-    // Normalize keys - Handle both underscore and space-separated column names
+    // Normalize keys
     const normalizedRow = {
       client_business_name: row.client_business_name || row['Client Business Name'] || row.clientBusinessName || '',
       keyword: row.keyword || row['Keyword'] || '',
       category: row.category || row['Category'] || '',
-      search_volume: row.search_volume !== undefined ? row.search_volume : (row['Search Volume'] !== undefined ? row['Search Volume'] : (row.searchVolume !== undefined ? row.searchVolume : 0)),
-      current_rank: row.current_rank !== undefined ? row.current_rank : (row['Current Rank'] !== undefined ? row['Current Rank'] : (row.currentRank !== undefined ? row.currentRank : 10)),
-      target_rank: row.target_rank !== undefined ? row.target_rank : (row['Target Rank'] !== undefined ? row['Target Rank'] : (row.targetRank !== undefined ? row.targetRank : 1)),
+      search_volume: row.search_volume || row['Search Volume'] || row.searchVolume || 0,
+      current_rank: row.current_rank || row['Current Rank'] || row.currentRank || 10, // Default to 10 if not provided
+      target_rank: row.target_rank || row['Target Rank'] || row.targetRank || 1, // Default to 1 if not provided
       difficulty: row.difficulty || row['Difficulty'] || 'medium',
       intent: row.intent || row['Intent'] || 'informational',
-      cpc: row.cpc !== undefined ? row.cpc : (row['CPC'] !== undefined ? row['CPC'] : (row['Cpc'] !== undefined ? row['Cpc'] : 0)),
-      competitor_1: row.competitor_1 !== undefined ? row.competitor_1 : (row['Competitor 1'] !== undefined ? row['Competitor 1'] : (row.competitor1 !== undefined ? row.competitor1 : 0)),
-      competitor_2: row.competitor_2 !== undefined ? row.competitor_2 : (row['Competitor 2'] !== undefined ? row['Competitor 2'] : (row.competitor2 !== undefined ? row.competitor2 : 0)),
-      competitor_3: row.competitor_3 !== undefined ? row.competitor_3 : (row['Competitor 3'] !== undefined ? row['Competitor 3'] : (row.competitor3 !== undefined ? row.competitor3 : 0)),
+      cpc: row.cpc || row['CPC'] || row['Cpc'] || 0,
+      competitor_1: row.competitor_1 || row['Competitor 1'] || row.competitor1 || 0,
+      competitor_2: row.competitor_2 || row['Competitor 2'] || row.competitor2 || 0,
+      competitor_3: row.competitor_3 || row['Competitor 3'] || row.competitor3 || 0,
     };
 
     if (!normalizedRow.client_business_name || normalizedRow.client_business_name.trim() === '') {
@@ -358,28 +358,19 @@ export const validateKeywordData = (data: any[]): { valid: boolean; errors: stri
     // Rank validations removed - using defaults instead
 
     if (errors.length === 0 || errors.filter(e => e.includes(`Row ${rowNum}`)).length === 0) {
-      // Convert to numbers, preserving actual values including 0
-      const searchVolume = normalizedRow.search_volume !== '' ? Number(normalizedRow.search_volume) : 0;
-      const currentRank = normalizedRow.current_rank !== '' ? Number(normalizedRow.current_rank) : 10;
-      const targetRank = normalizedRow.target_rank !== '' ? Number(normalizedRow.target_rank) : 1;
-      const cpcValue = normalizedRow.cpc !== '' ? Number(normalizedRow.cpc) : 0;
-      const comp1 = normalizedRow.competitor_1 !== '' && normalizedRow.competitor_1 !== 0 ? Number(normalizedRow.competitor_1) : undefined;
-      const comp2 = normalizedRow.competitor_2 !== '' && normalizedRow.competitor_2 !== 0 ? Number(normalizedRow.competitor_2) : undefined;
-      const comp3 = normalizedRow.competitor_3 !== '' && normalizedRow.competitor_3 !== 0 ? Number(normalizedRow.competitor_3) : undefined;
-      
       validData.push({
         client_business_name: normalizedRow.client_business_name,
         keyword: normalizedRow.keyword,
         category: normalizedRow.category || '',
-        search_volume: searchVolume,
-        current_rank: currentRank,
-        target_rank: targetRank,
+        search_volume: Number(normalizedRow.search_volume) || 0,
+        current_rank: Number(normalizedRow.current_rank) || 10,
+        target_rank: Number(normalizedRow.target_rank) || 1,
         difficulty: normalizedRow.difficulty,
         intent: normalizedRow.intent,
-        cpc: cpcValue,
-        competitor_1: comp1,
-        competitor_2: comp2,
-        competitor_3: comp3,
+        cpc: Number(normalizedRow.cpc) || 0,
+        competitor_1: Number(normalizedRow.competitor_1) || 0,
+        competitor_2: Number(normalizedRow.competitor_2) || 0,
+        competitor_3: Number(normalizedRow.competitor_3) || 0,
       });
     }
   });

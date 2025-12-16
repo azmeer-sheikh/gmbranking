@@ -18,6 +18,16 @@ interface CompetitorStats {
 }
 
 export default function CompetitorProfitCards({ keywords, avgJobPrice = 0 }: CompetitorProfitCardsProps) {
+  // CTR based on rank position (same as used in revenue calculations)
+  const getCTRByRank = (rank: number): number => {
+    if (rank === 1) return 0.30;
+    if (rank === 2) return 0.15;
+    if (rank === 3) return 0.10;
+    if (rank <= 5) return 0.05;
+    if (rank <= 10) return 0.02;
+    return 0.005;
+  };
+
   // Calculate competitor profits
   const calculateCompetitorProfits = (): CompetitorStats[] => {
     const competitorData: { [key: string]: { profit: number; ranks: number[]; keywords: number } } = {
@@ -27,46 +37,44 @@ export default function CompetitorProfitCards({ keywords, avgJobPrice = 0 }: Com
     };
 
     keywords.forEach(kw => {
-      const clientRank = kw.currentRank;
-      
       // Competitor 1
-      if (kw.competitor1Rank && kw.competitor1Rank > 0) {
+      if (kw.competitor1Rank && kw.competitor1Rank > 0 && kw.competitor1Rank <= 20) {
         competitorData['Competitor 1'].keywords++;
         competitorData['Competitor 1'].ranks.push(kw.competitor1Rank);
         
-        // If competitor ranks better than client, they're capturing revenue
-        if (kw.competitor1Rank < clientRank) {
-          const conversionRate = 0.005; // 0.5% conversion rate
-          const potentialConversions = kw.searchVolume * conversionRate;
-          const profit = potentialConversions * avgJobPrice;
-          competitorData['Competitor 1'].profit += profit;
-        }
+        // Calculate revenue based on competitor's rank position
+        const ctr = getCTRByRank(kw.competitor1Rank);
+        const conversionRate = 0.005; // 0.5% conversion rate
+        const clicks = kw.searchVolume * ctr;
+        const conversions = clicks * conversionRate;
+        const monthlyRevenue = conversions * avgJobPrice;
+        competitorData['Competitor 1'].profit += monthlyRevenue;
       }
 
       // Competitor 2
-      if (kw.competitor2Rank && kw.competitor2Rank > 0) {
+      if (kw.competitor2Rank && kw.competitor2Rank > 0 && kw.competitor2Rank <= 20) {
         competitorData['Competitor 2'].keywords++;
         competitorData['Competitor 2'].ranks.push(kw.competitor2Rank);
         
-        if (kw.competitor2Rank < clientRank) {
-          const conversionRate = 0.005;
-          const potentialConversions = kw.searchVolume * conversionRate;
-          const profit = potentialConversions * avgJobPrice;
-          competitorData['Competitor 2'].profit += profit;
-        }
+        const ctr = getCTRByRank(kw.competitor2Rank);
+        const conversionRate = 0.005;
+        const clicks = kw.searchVolume * ctr;
+        const conversions = clicks * conversionRate;
+        const monthlyRevenue = conversions * avgJobPrice;
+        competitorData['Competitor 2'].profit += monthlyRevenue;
       }
 
       // Competitor 3
-      if (kw.competitor3Rank && kw.competitor3Rank > 0) {
+      if (kw.competitor3Rank && kw.competitor3Rank > 0 && kw.competitor3Rank <= 20) {
         competitorData['Competitor 3'].keywords++;
         competitorData['Competitor 3'].ranks.push(kw.competitor3Rank);
         
-        if (kw.competitor3Rank < clientRank) {
-          const conversionRate = 0.005;
-          const potentialConversions = kw.searchVolume * conversionRate;
-          const profit = potentialConversions * avgJobPrice;
-          competitorData['Competitor 3'].profit += profit;
-        }
+        const ctr = getCTRByRank(kw.competitor3Rank);
+        const conversionRate = 0.005;
+        const clicks = kw.searchVolume * ctr;
+        const conversions = clicks * conversionRate;
+        const monthlyRevenue = conversions * avgJobPrice;
+        competitorData['Competitor 3'].profit += monthlyRevenue;
       }
     });
 

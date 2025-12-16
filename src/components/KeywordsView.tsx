@@ -30,6 +30,32 @@ export default function KeywordsView({ category, keywords }: KeywordsViewProps) 
   // Get client data from context
   const { selectedClient } = useClient();
 
+  // Calculate competitor average ranks
+  const calculateCompetitorAvgRank = (competitorNum: 1 | 2 | 3) => {
+    const validRanks = keywords
+      .map(kw => {
+        if (competitorNum === 1) return kw.competitor1Rank;
+        if (competitorNum === 2) return kw.competitor2Rank;
+        return kw.competitor3Rank;
+      })
+      .filter(rank => rank !== undefined && rank !== null);
+    
+    if (validRanks.length === 0) return null;
+    const sum = validRanks.reduce((acc, rank) => acc + rank, 0);
+    return (sum / validRanks.length).toFixed(1);
+  };
+
+  // Count top rankings (positions 1-3) for each competitor
+  const calculateTopRankings = (competitorNum: 1 | 2 | 3) => {
+    const topRanks = keywords.filter(kw => {
+      const rank = competitorNum === 1 ? kw.competitor1Rank : 
+                   competitorNum === 2 ? kw.competitor2Rank : 
+                   kw.competitor3Rank;
+      return rank !== undefined && rank !== null && rank <= 3;
+    });
+    return topRanks.length;
+  };
+
   const filteredKeywords = keywords
     .filter(kw => {
       const matchesSearch = kw.keyword?.toLowerCase().includes(searchQuery.toLowerCase());
@@ -121,17 +147,85 @@ export default function KeywordsView({ category, keywords }: KeywordsViewProps) 
       </div>
 
       {/* Top Competitors Performance */}
-      <CompetitorPerformance 
-        keywords={filteredKeywords.map(kw => ({
-          keyword: kw.keyword,
-          search_volume: kw.searchVolume,
-          cpc: kw.cpc,
-          competitor_1: kw.competitor1Rank || null,
-          competitor_2: kw.competitor2Rank || null,
-          competitor_3: kw.competitor3Rank || null,
-        }))}
-        avgJobPrice={selectedClient?.avg_job_price || 500}
-      />
+      {selectedClient?.avg_job_price && (
+        <CompetitorPerformance 
+          keywords={filteredKeywords.map(kw => ({
+            keyword: kw.keyword,
+            search_volume: kw.searchVolume,
+            cpc: kw.cpc,
+            competitor_1: kw.competitor1Rank || null,
+            competitor_2: kw.competitor2Rank || null,
+            competitor_3: kw.competitor3Rank || null,
+          }))}
+          avgJobPrice={selectedClient.avg_job_price}
+        />
+      )}
+
+      {/* Competitor Average Ranks Summary */}
+      <Card className="p-6">
+        <h3 className="text-lg font-semibold mb-4">Competitor Rankings Overview</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-slate-50 p-4 rounded-lg">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-slate-600">Competitor 1</span>
+              <Users className="size-4 text-slate-400" />
+            </div>
+            <div className="flex items-baseline gap-3">
+              <p className="text-2xl font-semibold text-slate-900">
+                {calculateCompetitorAvgRank(1) || 'N/A'}
+              </p>
+              {calculateCompetitorAvgRank(1) && (
+                <span className="text-xs text-slate-500">avg rank</span>
+              )}
+            </div>
+            <p className="text-xs text-slate-600 mt-2">
+              <span className="font-medium" style={{ color: '#00C47E' }}>
+                {calculateTopRankings(1)}
+              </span> top 3 rankings
+            </p>
+          </div>
+
+          <div className="bg-slate-50 p-4 rounded-lg">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-slate-600">Competitor 2</span>
+              <Users className="size-4 text-slate-400" />
+            </div>
+            <div className="flex items-baseline gap-3">
+              <p className="text-2xl font-semibold text-slate-900">
+                {calculateCompetitorAvgRank(2) || 'N/A'}
+              </p>
+              {calculateCompetitorAvgRank(2) && (
+                <span className="text-xs text-slate-500">avg rank</span>
+              )}
+            </div>
+            <p className="text-xs text-slate-600 mt-2">
+              <span className="font-medium" style={{ color: '#00C47E' }}>
+                {calculateTopRankings(2)}
+              </span> top 3 rankings
+            </p>
+          </div>
+
+          <div className="bg-slate-50 p-4 rounded-lg">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-slate-600">Competitor 3</span>
+              <Users className="size-4 text-slate-400" />
+            </div>
+            <div className="flex items-baseline gap-3">
+              <p className="text-2xl font-semibold text-slate-900">
+                {calculateCompetitorAvgRank(3) || 'N/A'}
+              </p>
+              {calculateCompetitorAvgRank(3) && (
+                <span className="text-xs text-slate-500">avg rank</span>
+              )}
+            </div>
+            <p className="text-xs text-slate-600 mt-2">
+              <span className="font-medium" style={{ color: '#00C47E' }}>
+                {calculateTopRankings(3)}
+              </span> top 3 rankings
+            </p>
+          </div>
+        </div>
+      </Card>
 
       {/* Filters & Controls */}
       <Card className="p-4">
@@ -197,11 +291,13 @@ export default function KeywordsView({ category, keywords }: KeywordsViewProps) 
             <thead className="bg-slate-50 border-b">
               <tr>
                 <th className="text-left px-6 py-4 text-sm text-slate-600">Keyword</th>
-                <th className="text-left px-6 py-4 text-sm text-slate-600">Location</th>
                 <th className="text-left px-6 py-4 text-sm text-slate-600">Search Volume</th>
                 <th className="text-left px-6 py-4 text-sm text-slate-600">Current Rank</th>
+                <th className="text-left px-6 py-4 text-sm text-slate-600">Target Rank</th>
+                <th className="text-left px-6 py-4 text-sm text-slate-600">Competitor 1</th>
+                <th className="text-left px-6 py-4 text-sm text-slate-600">Competitor 2</th>
+                <th className="text-left px-6 py-4 text-sm text-slate-600">Competitor 3</th>
                 <th className="text-left px-6 py-4 text-sm text-slate-600">Revenue Loss</th>
-                <th className="text-left px-6 py-4 text-sm text-slate-600">Top Competitors</th>
                 <th className="text-left px-6 py-4 text-sm text-slate-600">Actions</th>
               </tr>
             </thead>
@@ -214,9 +310,6 @@ export default function KeywordsView({ category, keywords }: KeywordsViewProps) 
                   const metrics = category 
                     ? calculateCustomerRevenueLoss(keyword, category.avgJobValue, category.conversionRate) 
                     : calculateCustomerRevenueLoss(keyword, defaultAvgJobValue, defaultConversionRate);
-                  const competitors = category 
-                    ? generateCompetitorsForKeyword(keyword, category.avgJobValue, category.conversionRate) 
-                    : generateCompetitorsForKeyword(keyword, defaultAvgJobValue, defaultConversionRate);
                   const rankBadge = getRankBadge(keyword.currentRank);
 
                   return (
@@ -225,12 +318,6 @@ export default function KeywordsView({ category, keywords }: KeywordsViewProps) 
                         <div>
                           <p className="text-sm text-slate-900 font-medium">{keyword.keyword}</p>
                           <p className="text-xs text-slate-500">{keyword.category}</p>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <MapPin className="size-3 text-slate-400" />
-                          <span className="text-sm text-slate-700">{location?.city || keyword.locationId}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4">
@@ -254,26 +341,74 @@ export default function KeywordsView({ category, keywords }: KeywordsViewProps) 
                         </div>
                       </td>
                       <td className="px-6 py-4">
+                        <Badge 
+                          variant="secondary"
+                          className="border w-fit"
+                          style={{ 
+                            backgroundColor: '#00C47E20',
+                            color: '#00C47E',
+                            borderColor: '#00C47E'
+                          }}
+                        >
+                          #{keyword.targetRank}
+                        </Badge>
+                      </td>
+                      <td className="px-6 py-4">
+                        {keyword.competitor1Rank ? (
+                          <Badge 
+                            variant="secondary"
+                            className="border w-fit"
+                            style={{ 
+                              backgroundColor: keyword.competitor1Rank <= 3 ? '#00C47E20' : keyword.competitor1Rank <= 10 ? '#FFA50020' : '#FF3B3020',
+                              color: keyword.competitor1Rank <= 3 ? '#00C47E' : keyword.competitor1Rank <= 10 ? '#FFA500' : '#FF3B30',
+                              borderColor: keyword.competitor1Rank <= 3 ? '#00C47E' : keyword.competitor1Rank <= 10 ? '#FFA500' : '#FF3B30'
+                            }}
+                          >
+                            #{keyword.competitor1Rank}
+                          </Badge>
+                        ) : (
+                          <span className="text-xs text-slate-400">N/A</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        {keyword.competitor2Rank ? (
+                          <Badge 
+                            variant="secondary"
+                            className="border w-fit"
+                            style={{ 
+                              backgroundColor: keyword.competitor2Rank <= 3 ? '#00C47E20' : keyword.competitor2Rank <= 10 ? '#FFA50020' : '#FF3B3020',
+                              color: keyword.competitor2Rank <= 3 ? '#00C47E' : keyword.competitor2Rank <= 10 ? '#FFA500' : '#FF3B30',
+                              borderColor: keyword.competitor2Rank <= 3 ? '#00C47E' : keyword.competitor2Rank <= 10 ? '#FFA500' : '#FF3B30'
+                            }}
+                          >
+                            #{keyword.competitor2Rank}
+                          </Badge>
+                        ) : (
+                          <span className="text-xs text-slate-400">N/A</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        {keyword.competitor3Rank ? (
+                          <Badge 
+                            variant="secondary"
+                            className="border w-fit"
+                            style={{ 
+                              backgroundColor: keyword.competitor3Rank <= 3 ? '#00C47E20' : keyword.competitor3Rank <= 10 ? '#FFA50020' : '#FF3B3020',
+                              color: keyword.competitor3Rank <= 3 ? '#00C47E' : keyword.competitor3Rank <= 10 ? '#FFA500' : '#FF3B30',
+                              borderColor: keyword.competitor3Rank <= 3 ? '#00C47E' : keyword.competitor3Rank <= 10 ? '#FFA500' : '#FF3B30'
+                            }}
+                          >
+                            #{keyword.competitor3Rank}
+                          </Badge>
+                        ) : (
+                          <span className="text-xs text-slate-400">N/A</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
                         <p className="text-sm font-semibold" style={{ color: '#FF3B30' }}>
                           -${metrics?.revenueLoss.toLocaleString() || 0}
                         </p>
                         <p className="text-xs text-slate-500">per month</p>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-start gap-2">
-                          <Users className="size-4 text-slate-400 mt-0.5" />
-                          <div>
-                            <p className="text-xs text-slate-900 font-medium">{competitors[0]?.businessName || 'N/A'}</p>
-                            {competitors[0] && (
-                              <>
-                                <p className="text-[10px] text-slate-500">Rank #{competitors[0].ranking}</p>
-                                <p className="text-[10px] font-medium" style={{ color: '#00C47E' }}>
-                                  ${competitors[0]?.estimatedRevenue.toLocaleString()}/mo
-                                </p>
-                              </>
-                            )}
-                          </div>
-                        </div>
                       </td>
                       <td className="px-6 py-4">
                         <Button 
@@ -291,7 +426,7 @@ export default function KeywordsView({ category, keywords }: KeywordsViewProps) 
                 })
               ) : (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center">
+                  <td colSpan={9} className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center gap-3">
                       <Search className="size-12 text-slate-300" />
                       <div>

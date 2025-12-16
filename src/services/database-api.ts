@@ -142,6 +142,27 @@ export async function deleteGlobalKeyword(id: string): Promise<boolean> {
   }
 }
 
+export async function bulkDeleteGlobalKeywords(ids: string[]): Promise<{ success: boolean; message?: string; count?: number }> {
+  try {
+    const response = await fetch(`${API_BASE}/global-keywords/bulk-delete`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ ids }),
+    });
+    const data = await response.json();
+    
+    if (!response.ok || data.error) {
+      console.error('Error bulk deleting global keywords:', data.error || 'Unknown error');
+      return { success: false, message: data.error || 'Failed to delete keywords' };
+    }
+    
+    return { success: true, count: data.count, message: data.message };
+  } catch (error) {
+    console.error('Error bulk deleting global keywords:', error);
+    return { success: false, message: 'Failed to delete keywords' };
+  }
+}
+
 export async function updateGlobalKeyword(
   id: string,
   updates: {

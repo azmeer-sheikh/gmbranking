@@ -34,26 +34,32 @@ export const generateCompetitorsForKeyword = (
 ): Competitor[] => {
   const competitors: Competitor[] = [];
   
-  // Generate top 3 competitors
-  for (let rank = 1; rank <= 3; rank++) {
-    const ctr = ctrByRank[rank] || 0.1;
-    const estimatedClicks = Math.round(keyword.searchVolume * ctr);
-    const estimatedRevenue = Math.round(estimatedClicks * conversionRate * avgJobValue);
-    
-    // Use deterministic but varied competitor names
-    const nameIndex = (parseInt(keyword.id.replace(/\D/g, '')) + rank) % competitorNames.length;
-    
-    competitors.push({
-      id: `comp-${keyword.id}-${rank}`,
-      businessName: competitorNames[nameIndex],
-      ranking: rank,
-      domain: `${competitorNames[nameIndex].toLowerCase().replace(/\s+/g, '')}.com`,
-      reviews: Math.floor(Math.random() * 300) + 100,
-      rating: 4.2 + Math.random() * 0.7,
-      estimatedRevenue,
-      estimatedClicks
-    });
-  }
+  // Use REAL competitor rankings from database instead of generating random data
+  const competitorRanks = [
+    { rank: keyword.competitor1Rank, name: 'Competitor #1' },
+    { rank: keyword.competitor2Rank, name: 'Competitor #2' },
+    { rank: keyword.competitor3Rank, name: 'Competitor #3' }
+  ];
+  
+  // Only include competitors that have actual rankings from database
+  competitorRanks.forEach((comp, index) => {
+    if (comp.rank && comp.rank > 0) {
+      const ctr = ctrByRank[comp.rank] || 0.01; // Use actual rank position for CTR
+      const estimatedClicks = Math.round(keyword.searchVolume * ctr);
+      const estimatedRevenue = Math.round(estimatedClicks * conversionRate * avgJobValue);
+      
+      competitors.push({
+        id: `comp-${keyword.id}-${index + 1}`,
+        businessName: comp.name,
+        ranking: comp.rank, // Use REAL rank from database
+        domain: `competitor${index + 1}.com`,
+        reviews: 150 + (index * 50), // Static placeholder
+        rating: 4.5 - (index * 0.1), // Static placeholder
+        estimatedRevenue,
+        estimatedClicks
+      });
+    }
+  });
   
   return competitors;
 };

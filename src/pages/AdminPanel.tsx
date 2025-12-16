@@ -314,6 +314,20 @@ export default function AdminPanel() {
     toast.success('Keyword deleted successfully!');
   };
 
+  const handleBulkDeleteKeywords = async (ids: string[]) => {
+    setLoading(true);
+    const result = await api.bulkDeleteGlobalKeywords(ids);
+    if (result.success) {
+      await loadData();
+      toast.success(result.message || `${result.count} keyword(s) deleted successfully!`);
+      return true;
+    } else {
+      toast.error(result.message || 'Failed to delete keywords');
+      setLoading(false);
+      return false;
+    }
+  };
+
   const handleAddKeyword = async () => {
     setLoading(true);
     const result = await api.addGlobalKeyword({
@@ -1050,6 +1064,121 @@ export default function AdminPanel() {
                     </div>
                   </div>
 
+                  {/* Competitor Revenue Calculations */}
+                  {(keywordForm.competitor1 || keywordForm.competitor2 || keywordForm.competitor3) && keywordForm.searchVolume > 0 && (
+                    <div className="my-4 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                      <h4 className="text-sm font-semibold mb-3 text-slate-700">Competitor Revenue Estimates</h4>
+                      <p className="text-xs text-slate-500 mb-3">Based on 0.5% conversion rate and $500 avg job price</p>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        {keywordForm.competitor1 && (
+                          <div className="bg-white p-3 rounded border border-slate-200">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-xs text-slate-600">Competitor #1</span>
+                              <Badge 
+                                variant="secondary"
+                                className="border text-xs"
+                                style={{ 
+                                  backgroundColor: keywordForm.competitor1 <= 3 ? '#00C47E20' : keywordForm.competitor1 <= 10 ? '#FFA50020' : '#FF3B3020',
+                                  color: keywordForm.competitor1 <= 3 ? '#00C47E' : keywordForm.competitor1 <= 10 ? '#FFA500' : '#FF3B30',
+                                  borderColor: keywordForm.competitor1 <= 3 ? '#00C47E' : keywordForm.competitor1 <= 10 ? '#FFA500' : '#FF3B30'
+                                }}
+                              >
+                                Rank #{keywordForm.competitor1}
+                              </Badge>
+                            </div>
+                            <p className="text-lg font-semibold" style={{ color: '#00C47E' }}>
+                              ${(() => {
+                                const getCTR = (rank: number) => {
+                                  if (rank === 1) return 0.30;
+                                  if (rank === 2) return 0.15;
+                                  if (rank === 3) return 0.10;
+                                  if (rank <= 10) return 0.05;
+                                  return 0.02;
+                                };
+                                const ctr = getCTR(keywordForm.competitor1);
+                                const clicks = keywordForm.searchVolume * ctr;
+                                const conversions = clicks * 0.005;
+                                const revenue = conversions * 500;
+                                return Math.round(revenue).toLocaleString();
+                              })()}
+                            </p>
+                            <p className="text-xs text-slate-500">per month</p>
+                          </div>
+                        )}
+                        {keywordForm.competitor2 && (
+                          <div className="bg-white p-3 rounded border border-slate-200">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-xs text-slate-600">Competitor #2</span>
+                              <Badge 
+                                variant="secondary"
+                                className="border text-xs"
+                                style={{ 
+                                  backgroundColor: keywordForm.competitor2 <= 3 ? '#00C47E20' : keywordForm.competitor2 <= 10 ? '#FFA50020' : '#FF3B3020',
+                                  color: keywordForm.competitor2 <= 3 ? '#00C47E' : keywordForm.competitor2 <= 10 ? '#FFA500' : '#FF3B30',
+                                  borderColor: keywordForm.competitor2 <= 3 ? '#00C47E' : keywordForm.competitor2 <= 10 ? '#FFA500' : '#FF3B30'
+                                }}
+                              >
+                                Rank #{keywordForm.competitor2}
+                              </Badge>
+                            </div>
+                            <p className="text-lg font-semibold" style={{ color: '#00C47E' }}>
+                              ${(() => {
+                                const getCTR = (rank: number) => {
+                                  if (rank === 1) return 0.30;
+                                  if (rank === 2) return 0.15;
+                                  if (rank === 3) return 0.10;
+                                  if (rank <= 10) return 0.05;
+                                  return 0.02;
+                                };
+                                const ctr = getCTR(keywordForm.competitor2);
+                                const clicks = keywordForm.searchVolume * ctr;
+                                const conversions = clicks * 0.005;
+                                const revenue = conversions * 500;
+                                return Math.round(revenue).toLocaleString();
+                              })()}
+                            </p>
+                            <p className="text-xs text-slate-500">per month</p>
+                          </div>
+                        )}
+                        {keywordForm.competitor3 && (
+                          <div className="bg-white p-3 rounded border border-slate-200">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-xs text-slate-600">Competitor #3</span>
+                              <Badge 
+                                variant="secondary"
+                                className="border text-xs"
+                                style={{ 
+                                  backgroundColor: keywordForm.competitor3 <= 3 ? '#00C47E20' : keywordForm.competitor3 <= 10 ? '#FFA50020' : '#FF3B3020',
+                                  color: keywordForm.competitor3 <= 3 ? '#00C47E' : keywordForm.competitor3 <= 10 ? '#FFA500' : '#FF3B30',
+                                  borderColor: keywordForm.competitor3 <= 3 ? '#00C47E' : keywordForm.competitor3 <= 10 ? '#FFA500' : '#FF3B30'
+                                }}
+                              >
+                                Rank #{keywordForm.competitor3}
+                              </Badge>
+                            </div>
+                            <p className="text-lg font-semibold" style={{ color: '#00C47E' }}>
+                              ${(() => {
+                                const getCTR = (rank: number) => {
+                                  if (rank === 1) return 0.30;
+                                  if (rank === 2) return 0.15;
+                                  if (rank === 3) return 0.10;
+                                  if (rank <= 10) return 0.05;
+                                  return 0.02;
+                                };
+                                const ctr = getCTR(keywordForm.competitor3);
+                                const clicks = keywordForm.searchVolume * ctr;
+                                const conversions = clicks * 0.005;
+                                const revenue = conversions * 500;
+                                return Math.round(revenue).toLocaleString();
+                              })()}
+                            </p>
+                            <p className="text-xs text-slate-500">per month</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                   <DialogFooter>
                     <Button
                       variant="outline"
@@ -1076,6 +1205,7 @@ export default function AdminPanel() {
               globalKeywords={globalKeywords}
               onEdit={handleEditKeyword}
               onDelete={handleDeleteKeyword}
+              onBulkDelete={handleBulkDeleteKeywords}
               loading={loading}
             />
           </TabsContent>

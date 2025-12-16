@@ -20,6 +20,7 @@ interface KeywordsManagementProps {
   globalKeywords: GlobalKeyword[];
   onEdit: (kw: GlobalKeyword) => void;
   onDelete: (id: string) => void;
+  onBulkDelete: (ids: string[]) => Promise<boolean>;
   loading: boolean;
 }
 
@@ -27,6 +28,7 @@ export default function KeywordsManagement({
   globalKeywords,
   onEdit,
   onDelete,
+  onBulkDelete,
   loading,
 }: KeywordsManagementProps) {
   const [searchTerm, setSearchTerm] = useState('');
@@ -71,12 +73,11 @@ export default function KeywordsManagement({
       return;
     }
 
-    // Delete each selected keyword
-    for (const id of selectedIds) {
-      await onDelete(id);
+    // Use the bulk delete API
+    const result = await onBulkDelete(selectedIds);
+    if (result) {
+      setSelectedIds([]);
     }
-    
-    setSelectedIds([]);
   };
 
   // Handle select all

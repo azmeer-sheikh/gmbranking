@@ -400,6 +400,34 @@ app.delete("/make-server-dc7dce20/global-keywords/:id", async (c) => {
   }
 });
 
+// Bulk delete global keywords
+app.post("/make-server-dc7dce20/global-keywords/bulk-delete", async (c) => {
+  try {
+    const body = await c.req.json();
+    const { ids } = body;
+
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return c.json({ error: "No keyword IDs provided" }, 400);
+    }
+
+    const { error } = await supabase
+      .from('global_keywords')
+      .delete()
+      .in('id', ids);
+
+    if (error) {
+      return c.json({ error: error.message }, 500);
+    }
+
+    return c.json({ 
+      message: `${ids.length} keyword(s) deleted successfully`,
+      count: ids.length
+    });
+  } catch (error) {
+    return c.json({ error: `Unexpected error: ${error}` }, 500);
+  }
+});
+
 app.put("/make-server-dc7dce20/global-keywords/:id", async (c) => {
   try {
     const id = c.req.param('id');

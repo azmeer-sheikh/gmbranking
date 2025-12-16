@@ -65,9 +65,10 @@ export default function MainApp() {
         cpc: kw.global_keywords?.cpc || kw.cpc || 0,
         difficulty: 50,
         category: kw.category || selectedClientData.client.category || selectedCategory,
-        competitor1Rank: kw.competitor_1 || undefined,
-        competitor2Rank: kw.competitor_2 || undefined,
-        competitor3Rank: kw.competitor_3 || undefined,
+        // Use competitor ranks from global_keywords table (primary) or client_keywords table (fallback)
+        competitor1Rank: kw.global_keywords?.competitor_1 || kw.competitor_1 || undefined,
+        competitor2Rank: kw.global_keywords?.competitor_2 || kw.competitor_2 || undefined,
+        competitor3Rank: kw.global_keywords?.competitor_3 || kw.competitor_3 || undefined,
       }));
       setKeywords(clientKeywords);
       
