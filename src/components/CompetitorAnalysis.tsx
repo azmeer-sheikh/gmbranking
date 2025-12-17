@@ -185,7 +185,9 @@ export default function CompetitorAnalysis({ keyword, avgJobValue, conversionRat
           <li>• Competitors are earning ${totalCompetitorRevenue.toLocaleString()}/month from this keyword</li>
           <li>• Moving from #{keyword.currentRank} to #3 could capture ${customerMetrics.revenueLoss.toLocaleString()}/month</li>
           <li>• That's ${(customerMetrics.revenueLoss * 12).toLocaleString()}/year in additional revenue</li>
-          <li>• Current market leader earning ${competitors[0].estimatedRevenue.toLocaleString()}/month at position #1</li>
+          {competitors.length > 0 && competitors[0]?.estimatedRevenue && (
+            <li>• Current market leader earning ${competitors[0].estimatedRevenue.toLocaleString()}/month at position #1</li>
+          )}
         </ul>
       </div>
     </div>

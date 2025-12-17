@@ -331,7 +331,7 @@ export const validateKeywordData = (data: any[]): { valid: boolean; errors: stri
   data.forEach((row, index) => {
     const rowNum = index + 2;
 
-    // Normalize keys
+    // Normalize keys - handle multiple column name variations
     const normalizedRow = {
       client_business_name: row.client_business_name || row['Client Business Name'] || row.clientBusinessName || '',
       keyword: row.keyword || row['Keyword'] || '',
@@ -342,9 +342,10 @@ export const validateKeywordData = (data: any[]): { valid: boolean; errors: stri
       difficulty: row.difficulty || row['Difficulty'] || 'medium',
       intent: row.intent || row['Intent'] || 'informational',
       cpc: row.cpc || row['CPC'] || row['Cpc'] || 0,
-      competitor_1: row.competitor_1 || row['Competitor 1'] || row.competitor1 || 0,
-      competitor_2: row.competitor_2 || row['Competitor 2'] || row.competitor2 || 0,
-      competitor_3: row.competitor_3 || row['Competitor 3'] || row.competitor3 || 0,
+      // Handle multiple column name variations for competitor ranks
+      competitor_1: row.competitor_1 ?? row['Competitor 1'] ?? row['competitor_1'] ?? row.Competitor_1 ?? row.competitor1 ?? row.Competitor1 ?? null,
+      competitor_2: row.competitor_2 ?? row['Competitor 2'] ?? row['competitor_2'] ?? row.Competitor_2 ?? row.competitor2 ?? row.Competitor2 ?? null,
+      competitor_3: row.competitor_3 ?? row['Competitor 3'] ?? row['competitor_3'] ?? row.Competitor_3 ?? row.competitor3 ?? row.Competitor3 ?? null,
     };
 
     if (!normalizedRow.client_business_name || normalizedRow.client_business_name.trim() === '') {
@@ -368,10 +369,24 @@ export const validateKeywordData = (data: any[]): { valid: boolean; errors: stri
         difficulty: normalizedRow.difficulty,
         intent: normalizedRow.intent,
         cpc: Number(normalizedRow.cpc) || 0,
-        competitor_1: Number(normalizedRow.competitor_1) || 0,
-        competitor_2: Number(normalizedRow.competitor_2) || 0,
-        competitor_3: Number(normalizedRow.competitor_3) || 0,
+        // Use nullish coalescing to preserve 0 values and convert to number or null
+        competitor_1: normalizedRow.competitor_1 !== null && normalizedRow.competitor_1 !== undefined && normalizedRow.competitor_1 !== '' ? Number(normalizedRow.competitor_1) : null,
+        competitor_2: normalizedRow.competitor_2 !== null && normalizedRow.competitor_2 !== undefined && normalizedRow.competitor_2 !== '' ? Number(normalizedRow.competitor_2) : null,
+        competitor_3: normalizedRow.competitor_3 !== null && normalizedRow.competitor_3 !== undefined && normalizedRow.competitor_3 !== '' ? Number(normalizedRow.competitor_3) : null,
       });
+      
+      // Debug log for first 3 rows to verify competitor data
+      if (validData.length <= 3) {
+        console.log(`📊 Excel Validation Row ${rowNum}:`, {
+          keyword: normalizedRow.keyword,
+          competitor_1_raw: normalizedRow.competitor_1,
+          competitor_2_raw: normalizedRow.competitor_2,
+          competitor_3_raw: normalizedRow.competitor_3,
+          competitor_1_final: validData[validData.length - 1].competitor_1,
+          competitor_2_final: validData[validData.length - 1].competitor_2,
+          competitor_3_final: validData[validData.length - 1].competitor_3,
+        });
+      }
     }
   });
 
@@ -444,6 +459,11 @@ export const validateGlobalKeywordData = (data: any[]): { valid: boolean; errors
       difficulty: row.difficulty || row['Difficulty'] || 'medium',
       intent: row.intent || row['Intent'] || 'informational',
       seasonal_trend: row.seasonal_trend || row['Seasonal Trend'] || row.seasonalTrend || '',
+      cpc: row.cpc || row['CPC'] || row['Cpc'] || 0,
+      // Handle multiple column name variations for competitor ranks
+      competitor_1: row.competitor_1 ?? row['Competitor 1'] ?? row['competitor_1'] ?? row.Competitor_1 ?? row.competitor1 ?? row.Competitor1 ?? null,
+      competitor_2: row.competitor_2 ?? row['Competitor 2'] ?? row['competitor_2'] ?? row.Competitor_2 ?? row.competitor2 ?? row.Competitor2 ?? null,
+      competitor_3: row.competitor_3 ?? row['Competitor 3'] ?? row['competitor_3'] ?? row.Competitor_3 ?? row.competitor3 ?? row.Competitor3 ?? null,
     };
 
     if (!normalizedRow.keyword || normalizedRow.keyword.trim() === '') {
@@ -462,6 +482,11 @@ export const validateGlobalKeywordData = (data: any[]): { valid: boolean; errors
         difficulty: normalizedRow.difficulty,
         intent: normalizedRow.intent,
         seasonal_trend: normalizedRow.seasonal_trend || '',
+        cpc: Number(normalizedRow.cpc) || 0,
+        // Use nullish coalescing to preserve 0 values and convert to number or null
+        competitor_1: normalizedRow.competitor_1 !== null && normalizedRow.competitor_1 !== undefined && normalizedRow.competitor_1 !== '' ? Number(normalizedRow.competitor_1) : undefined,
+        competitor_2: normalizedRow.competitor_2 !== null && normalizedRow.competitor_2 !== undefined && normalizedRow.competitor_2 !== '' ? Number(normalizedRow.competitor_2) : undefined,
+        competitor_3: normalizedRow.competitor_3 !== null && normalizedRow.competitor_3 !== undefined && normalizedRow.competitor_3 !== '' ? Number(normalizedRow.competitor_3) : undefined,
       });
     }
   });

@@ -54,23 +54,41 @@ export default function MainApp() {
   useEffect(() => {
     if (selectedClientData && selectedClientData.keywords.length > 0) {
       // Convert database keywords to Keyword format
-      const clientKeywords: Keyword[] = selectedClientData.keywords.map(kw => ({
-        id: kw.id,
-        keyword: kw.global_keywords?.keyword || kw.keyword_id,
-        locationId: selectedClientData.client.area || 'loc1',
-        searchVolume: kw.global_keywords?.search_volume || kw.search_volume,
-        currentRank: kw.current_rank,
-        targetRank: kw.target_rank || 1, // Add target rank with fallback
-        previousRank: kw.current_rank + 2,
-        cpc: kw.global_keywords?.cpc || kw.cpc || 0,
-        difficulty: 50,
-        category: kw.category || selectedClientData.client.category || selectedCategory,
-        // Use competitor ranks from client_keywords (primary) or global_keywords table (fallback)
-        // Check for null/undefined specifically, not falsy (0 is valid rank)
-        competitor1Rank: kw.competitor_1 !== null && kw.competitor_1 !== undefined ? kw.competitor_1 : (kw.global_keywords?.competitor_1 !== null && kw.global_keywords?.competitor_1 !== undefined ? kw.global_keywords.competitor_1 : undefined),
-        competitor2Rank: kw.competitor_2 !== null && kw.competitor_2 !== undefined ? kw.competitor_2 : (kw.global_keywords?.competitor_2 !== null && kw.global_keywords?.competitor_2 !== undefined ? kw.global_keywords.competitor_2 : undefined),
-        competitor3Rank: kw.competitor_3 !== null && kw.competitor_3 !== undefined ? kw.competitor_3 : (kw.global_keywords?.competitor_3 !== null && kw.global_keywords?.competitor_3 !== undefined ? kw.global_keywords.competitor_3 : undefined),
-      }));
+      const clientKeywords: Keyword[] = selectedClientData.keywords.map(kw => {
+        // Prioritize client_keywords table for competitor ranks, then fall back to global_keywords
+        const comp1 = kw.competitor_1 ?? kw.global_keywords?.competitor_1 ?? undefined;
+        const comp2 = kw.competitor_2 ?? kw.global_keywords?.competitor_2 ?? undefined;
+        const comp3 = kw.competitor_3 ?? kw.global_keywords?.competitor_3 ?? undefined;
+        
+        // Debug log to see what we're getting from the database
+        console.log('🔍 Keyword mapping debug:', {
+          keyword: kw.global_keywords?.keyword || kw.keyword_id,
+          from_client_keywords: { comp1: kw.competitor_1, comp2: kw.competitor_2, comp3: kw.competitor_3 },
+          from_global_keywords: { 
+            comp1: kw.global_keywords?.competitor_1, 
+            comp2: kw.global_keywords?.competitor_2, 
+            comp3: kw.global_keywords?.competitor_3 
+          },
+          final: { comp1, comp2, comp3 }
+        });
+        
+        return {
+          id: kw.id,
+          keyword: kw.global_keywords?.keyword || kw.keyword_id,
+          locationId: selectedClientData.client.area || 'loc1',
+          searchVolume: kw.global_keywords?.search_volume || kw.search_volume,
+          currentRank: kw.current_rank,
+          targetRank: kw.target_rank || 1, // Add target rank with fallback
+          previousRank: kw.current_rank + 2,
+          cpc: kw.global_keywords?.cpc || kw.cpc || 0,
+          difficulty: 50,
+          category: kw.category || selectedClientData.client.category || selectedCategory,
+          // Use competitor ranks from client_keywords table (primary) or global_keywords table (fallback)
+          competitor1Rank: comp1,
+          competitor2Rank: comp2,
+          competitor3Rank: comp3,
+        };
+      });
       setKeywords(clientKeywords);
       
       // Update category to match client's category
