@@ -29,7 +29,6 @@ interface DataContextType {
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
-
 export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [keywords, setKeywords] = useState<Keyword[]>([]);
   const [rankings, setRankings] = useState<GMBRanking[]>([]);
@@ -142,7 +141,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setIsLoading(false);
     }
   };
-
   const updateRanking = async (id: string, trafficShare: number) => {
     setError(null);
     
@@ -160,7 +158,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       throw err;
     }
   };
-
   const getFilteredKeywords = () => {
     return keywords.filter((k) => {
       if (filters.state && k.state !== filters.state) return false;
@@ -169,7 +166,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return true;
     });
   };
-
   const getStates = () => {
     return Array.from(new Set(keywords.map((k) => k.state))).filter(Boolean).sort();
   };

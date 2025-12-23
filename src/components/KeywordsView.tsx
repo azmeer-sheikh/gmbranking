@@ -287,21 +287,6 @@ export default function KeywordsView({ category, keywords }: KeywordsViewProps) 
               <SelectItem value="rank">Current Rank</SelectItem>
             </SelectContent>
           </Select>
-
-          <Dialog open={isCompetitorDialogOpen} onOpenChange={setIsCompetitorDialogOpen}>
-            <DialogTrigger asChild>
-              <Button style={{ backgroundColor: '#0052CC' }}>
-                <Plus className="size-4 mr-2" />
-                Add Keyword
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add New Keyword</DialogTitle>
-              </DialogHeader>
-              <AddKeywordForm onClose={() => setIsCompetitorDialogOpen(false)} />
-            </DialogContent>
-          </Dialog>
         </div>
       </Card>
 
@@ -481,70 +466,5 @@ export default function KeywordsView({ category, keywords }: KeywordsViewProps) 
         </Dialog>
       )}
     </div>
-  );
-}
-
-function AddKeywordForm({ onClose }: { onClose: () => void }) {
-  return (
-    <form className="space-y-4">
-      <div>
-        <Label htmlFor="keyword">Keyword *</Label>
-        <Input id="keyword" placeholder="e.g., emergency plumber near me" required />
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="location">Location *</Label>
-          <Select>
-            <SelectTrigger>
-              <SelectValue placeholder="Select location" />
-            </SelectTrigger>
-            <SelectContent>
-              {locations.map(loc => (
-                <SelectItem key={loc.id} value={loc.id}>{loc.city}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div>
-          <Label htmlFor="category">Category *</Label>
-          <Input id="category" placeholder="e.g., Emergency Services" required />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="searchVolume">Search Volume *</Label>
-          <Input id="searchVolume" type="number" placeholder="0" required />
-        </div>
-
-        <div>
-          <Label htmlFor="currentRank">Current Rank *</Label>
-          <Input id="currentRank" type="number" placeholder="1-100" required />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="cpc">CPC ($)</Label>
-          <Input id="cpc" type="number" step="0.01" placeholder="0.00" />
-        </div>
-
-        <div>
-          <Label htmlFor="difficulty">Difficulty (0-100)</Label>
-          <Input id="difficulty" type="number" placeholder="50" />
-        </div>
-      </div>
-
-      <div className="flex gap-3 pt-4">
-        <Button type="button" variant="outline" onClick={onClose} className="flex-1">
-          Cancel
-        </Button>
-        <Button type="submit" className="flex-1" style={{ backgroundColor: '#0052CC' }}>
-          Add Keyword
-        </Button>
-      </div>
-    </form>
   );
 }

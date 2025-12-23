@@ -7,16 +7,13 @@ import { seedKeywords, businessCategories } from "./seed-data.tsx";
 import * as kv from "./kv_store.tsx";
 
 const app = new Hono();
-
 // Create Supabase client
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL') ?? '',
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
 );
-
 // Enable logger
 app.use('*', logger(console.log));
-
 // Enable CORS for all routes
 app.use(
   "/*",
@@ -28,7 +25,6 @@ app.use(
     maxAge: 600,
   }),
 );
-
 // Health check
 app.get("/make-server-dc7dce20/health", (c) => {
   return c.json({ status: "ok" });
@@ -47,7 +43,6 @@ app.post("/make-server-dc7dce20/init-db", async (c) => {
     }, 500);
   }
 });
-
 // Reload schema cache (useful after manual database changes)
 app.post("/make-server-dc7dce20/reload-schema", async (c) => {
   try {
@@ -89,7 +84,6 @@ app.post("/make-server-dc7dce20/reload-schema", async (c) => {
     }, 500);
   }
 });
-
 // Seed database with keywords
 app.post("/make-server-dc7dce20/seed-keywords", async (c) => {
   try {
@@ -128,17 +122,14 @@ app.post("/make-server-dc7dce20/seed-keywords", async (c) => {
         if (error) {
           throw new Error(error.message);
         }
-
         successCount++;
       } catch (error) {
         console.error('Failed to seed keyword:', keywordData.keyword, error);
         errors.push(`${keywordData.keyword}: ${error.message}`);
       }
     }
-
     console.log('=== SEEDING KEYWORDS END ===');
     console.log('Success:', successCount, 'Skipped:', skipCount, 'Errors:', errors.length);
-
     return c.json({
       success: true,
       message: `Seeded ${successCount} keywords (${skipCount} already existed)`,
@@ -152,24 +143,102 @@ app.post("/make-server-dc7dce20/seed-keywords", async (c) => {
     }, 500);
   }
 });
-
 // Get business categories
-app.get("/make-server-dc7dce20/categories", (c) => {
-  return c.json({ categories: businessCategories });
+app.get("/make-server-dc7dce20/categories", async (c) => {
+  try {
+    const searchQuery = c.req.query('search')?.toLowerCase() || '';
+    
+    let query = supabase
+      .from('business_categories')
+      .select('*')
+      .order('name', { ascending: true });
+    
+    // Apply search filter if provided
+    if (searchQuery) {
+      query = query.or(`name.ilike.%${searchQuery}%,id.ilike.%${searchQuery}%`);
+    }
+    
+    const { data: dbCategories, error } = await query;
+    
+    // Icon mapping for categories
+    const categoryIcons: Record<string, string> = {
+      plumbing: '🔧',
+      hvac: '❄️',
+      electrician: '⚡',
+      roofing: '🏠',
+      landscaping: '🌳',
+      locksmith: '🔑',
+      cleaning: '🧹',
+      pest_control: '🐜',
+      general_contractor: '👷',
+      dentist: '🦷',
+      healthcare: '🏥',
+      education: '📚',
+      real_estate: '🏘️',
+      retail: '🛍️',
+      legal_services: '⚖️',
+      hospitality: '🏨',
+      ecommerce: '🛒',
+      automotive: '🚗',
+      junk_removal: '🗑️',
+    };
+    
+    // If database is empty or error, seed with hardcoded categories
+    if (error || !dbCategories || dbCategories.length === 0) {
+      console.log('Seeding business categories from hardcoded data...');
+      
+      // Insert hardcoded categories into database with icons
+      const { error: insertError } = await supabase
+        .from('business_categories')
+        .upsert(businessCategories.map(cat => ({
+          id: cat.id,
+          name: cat.name,
+          icon: categoryIcons[cat.id] || '📊',
+          avg_job_value: cat.avgJobValue,
+          conversion_rate: cat.conversionRate
+        })), { onConflict: 'id' });
+      
+      if (insertError) {
+        console.error('Failed to seed categories:', insertError);
+        // Return hardcoded categories as fallback
+        const filtered = searchQuery 
+          ? businessCategories.filter(cat => 
+              cat.name.toLowerCase().includes(searchQuery) || 
+              cat.id.toLowerCase().includes(searchQuery)
+            )
+          : businessCategories;
+        return c.json({ categories: filtered });
+      }
+      
+      // Fetch again after seeding
+      const { data: seededCategories } = await query;
+      return c.json({ categories: seededCategories || businessCategories });
+    }
+    
+    return c.json({ categories: dbCategories });
+  } catch (error) {
+    console.error('Categories fetch error:', error);
+    // Fallback to hardcoded categories
+    const searchQuery = c.req.query('search')?.toLowerCase() || '';
+    const filtered = searchQuery 
+      ? businessCategories.filter(cat => 
+          cat.name.toLowerCase().includes(searchQuery) || 
+          cat.id.toLowerCase().includes(searchQuery)
+        )
+      : businessCategories;
+    return c.json({ categories: filtered });
+  }
 });
-
 // Seed "Geter Done 2" demo client
 app.post("/make-server-dc7dce20/seed-demo-client", async (c) => {
   try {
-    console.log('=== SEEDING DEMO CLIENT START ===');
-    
+    console.log('=== SEEDING DEMO CLIENT START ===');    
     // Check if client already exists
     const { data: existingClient } = await supabase
       .from('clients')
       .select('id')
       .eq('business_name', 'Geter Done 2')
       .single();
-
     if (existingClient) {
       console.log('Demo client already exists');
       return c.json({
@@ -178,7 +247,6 @@ app.post("/make-server-dc7dce20/seed-demo-client", async (c) => {
         clientId: existingClient.id,
       });
     }
-
     // Create client with correct column names
     const { data: newClient, error: clientError } = await supabase
       .from('clients')
@@ -199,7 +267,6 @@ app.post("/make-server-dc7dce20/seed-demo-client", async (c) => {
     if (clientError) {
       throw new Error(`Failed to create client: ${clientError.message}`);
     }
-
     console.log('Created client:', newClient.id);
 
     // Get ALL junk removal keywords (47 total)
@@ -211,7 +278,6 @@ app.post("/make-server-dc7dce20/seed-demo-client", async (c) => {
     if (keywordsError) {
       throw new Error(`Failed to fetch keywords: ${keywordsError.message}`);
     }
-
     // Add keywords to client
     const keywordInserts = junkKeywords.map(kw => ({
       client_id: newClient.id,
@@ -219,7 +285,6 @@ app.post("/make-server-dc7dce20/seed-demo-client", async (c) => {
       current_rank: Math.floor(Math.random() * 10) + 1, // Random rank 1-10
       previous_rank: Math.floor(Math.random() * 15) + 1,
     }));
-
     const { error: ckError } = await supabase
       .from('client_keywords')
       .insert(keywordInserts);
@@ -229,7 +294,6 @@ app.post("/make-server-dc7dce20/seed-demo-client", async (c) => {
     } else {
       console.log('Added', keywordInserts.length, 'keywords');
     }
-
     // Add Kansas City service areas
     const serviceAreas = [
       { area_name: 'Downtown Kansas City', latitude: 39.0997, longitude: -94.5786, radius_km: 10, is_primary: true },
@@ -262,7 +326,6 @@ app.post("/make-server-dc7dce20/seed-demo-client", async (c) => {
       { metric_name: 'Conversion Rate', metric_value: 3.8, metric_type: 'conversion', period_start: '2024-01', period_end: '2024-12' },
       { metric_name: 'Avg. Job Value', metric_value: 180, metric_type: 'revenue', period_start: '2024-01', period_end: '2024-12' },
     ];
-
     await kv.set(`client:${newClient.id}:analytics`, analyticsMetrics);
     console.log('Added analytics metrics');
 
@@ -355,7 +418,6 @@ app.post("/make-server-dc7dce20/global-keywords", async (c) => {
     if (!keyword) {
       return c.json({ error: "Keyword is required" }, 400);
     }
-
     const { data, error } = await supabase
       .from('global_keywords')
       .insert({
@@ -521,6 +583,11 @@ app.get("/make-server-dc7dce20/clients/:id", async (c) => {
 
     if (keywordsError) {
       return c.json({ error: keywordsError.message }, 500);
+    }
+
+    // Debug: Log first keyword to see the structure
+    if (keywords && keywords.length > 0) {
+      console.log('🔍 Server: First keyword data structure:', JSON.stringify(keywords[0], null, 2));
     }
 
     // Get competitors with their keywords
@@ -1002,6 +1069,16 @@ app.post("/make-server-dc7dce20/bulk-import/keywords", async (c) => {
 
     for (const keywordData of keywords) {
       try {
+        // Debug log first 3 keywords to verify competitor data
+        if (successCount < 3) {
+          console.log(`📊 Server: Processing keyword #${successCount + 1}:`, {
+            keyword: keywordData.keyword,
+            competitor_1: keywordData.competitor_1,
+            competitor_2: keywordData.competitor_2,
+            competitor_3: keywordData.competitor_3,
+          });
+        }
+        
         // Find client by business name
         const client = clients.find((c: any) => 
           c.business_name.toLowerCase() === keywordData.client_business_name.toLowerCase()
@@ -1064,57 +1141,33 @@ app.post("/make-server-dc7dce20/bulk-import/keywords", async (c) => {
           console.log('Created new global keyword:', keywordData.keyword);
         }
 
-        // Now create or update client keyword link
-        // First check if it already exists
-        const { data: existingClientKeyword } = await supabase
+        // Now create or update client keyword link using UPSERT
+        const clientKeywordData = {
+          client_id: client.id,
+          keyword_id: globalKeywordId,
+          current_rank: keywordData.current_rank || 20,
+          target_rank: keywordData.target_rank || 1,
+          search_volume: keywordData.search_volume || 0,
+          cpc: keywordData.cpc || 0,
+          competitor_1: keywordData.competitor_1 ?? null,
+          competitor_2: keywordData.competitor_2 ?? null,
+          competitor_3: keywordData.competitor_3 ?? null,
+        };
+
+        // Use upsert to update if exists, insert if new
+        const { error: clientKeywordError } = await supabase
           .from('client_keywords')
-          .select('id')
-          .eq('client_id', client.id)
-          .eq('keyword_id', globalKeywordId)
-          .single();
+          .upsert(clientKeywordData, {
+            onConflict: 'client_id,keyword_id',
+            ignoreDuplicates: false, // This ensures we UPDATE on conflict
+          });
 
-        if (existingClientKeyword) {
-          // Update existing client keyword with new data
-          const { error: updateError } = await supabase
-            .from('client_keywords')
-            .update({
-              current_rank: keywordData.current_rank || 20,
-              target_rank: keywordData.target_rank || 1,
-              search_volume: keywordData.search_volume || 0,
-              cpc: keywordData.cpc || 0,
-              competitor_1: keywordData.competitor_1 !== undefined ? keywordData.competitor_1 : null,
-              competitor_2: keywordData.competitor_2 !== undefined ? keywordData.competitor_2 : null,
-              competitor_3: keywordData.competitor_3 !== undefined ? keywordData.competitor_3 : null,
-            })
-            .eq('id', existingClientKeyword.id);
-
-          if (updateError) {
-            throw new Error(`Failed to update client keyword: ${updateError.message}`);
-          }
-          console.log('Updated existing client keyword:', keywordData.keyword, 'for client:', client.business_name, 'with competitors:', keywordData.competitor_1, keywordData.competitor_2, keywordData.competitor_3);
-          successCount++;
-        } else {
-          // Create new client keyword link
-          const { error: clientKeywordError } = await supabase
-            .from('client_keywords')
-            .insert({
-              client_id: client.id,
-              keyword_id: globalKeywordId,
-              current_rank: keywordData.current_rank || 20,
-              target_rank: keywordData.target_rank || 1,
-              search_volume: keywordData.search_volume || 0,
-              cpc: keywordData.cpc || 0,
-              competitor_1: keywordData.competitor_1 !== undefined ? keywordData.competitor_1 : null,
-              competitor_2: keywordData.competitor_2 !== undefined ? keywordData.competitor_2 : null,
-              competitor_3: keywordData.competitor_3 !== undefined ? keywordData.competitor_3 : null,
-            });
-
-          if (clientKeywordError) {
-            throw new Error(`Failed to create client keyword: ${clientKeywordError.message}`);
-          }
-          console.log('Successfully created keyword:', keywordData.keyword, 'for client:', client.business_name, 'with competitors:', keywordData.competitor_1, keywordData.competitor_2, keywordData.competitor_3);
-          successCount++;
+        if (clientKeywordError) {
+          throw new Error(clientKeywordError.message);
         }
+
+        console.log('Successfully saved/updated keyword:', keywordData.keyword, 'for client:', client.business_name);
+        successCount++;
       } catch (error) {
         console.error('Failed to import keyword:', keywordData.keyword, error);
         errorCount++;
@@ -1171,9 +1224,9 @@ app.post("/make-server-dc7dce20/bulk-import/global-keywords", async (c) => {
               search_volume: keywordData.search_volume || 0,
               competition: keywordData.difficulty || 'medium',
               cpc: keywordData.cpc || 0,
-              competitor_1: keywordData.competitor_1 || null,
-              competitor_2: keywordData.competitor_2 || null,
-              competitor_3: keywordData.competitor_3 || null,
+              competitor_1: keywordData.competitor_1 ?? null,
+              competitor_2: keywordData.competitor_2 ?? null,
+              competitor_3: keywordData.competitor_3 ?? null,
             })
             .eq('id', existingKeyword.id);
           
@@ -1194,9 +1247,9 @@ app.post("/make-server-dc7dce20/bulk-import/global-keywords", async (c) => {
               search_volume: keywordData.search_volume || 0,
               competition: keywordData.difficulty || 'medium',
               cpc: keywordData.cpc || 0,
-              competitor_1: keywordData.competitor_1 || null,
-              competitor_2: keywordData.competitor_2 || null,
-              competitor_3: keywordData.competitor_3 || null,
+              competitor_1: keywordData.competitor_1 ?? null,
+              competitor_2: keywordData.competitor_2 ?? null,
+              competitor_3: keywordData.competitor_3 ?? null,
             });
 
           if (error) {

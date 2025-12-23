@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import * as api from '../services/database-api';
 import type { Client, ClientDetails, ClientKeyword } from '../types/database';
-
 interface ClientContextType {
   // Client list and selection
   clients: Client[];
@@ -10,16 +9,13 @@ interface ClientContextType {
   selectedClientData: ClientDetails | null;
   selectedClientServiceAreas: any[];
   setSelectedClientId: (id: string) => void;
-  
   // Loading states
   loading: boolean;
   dbInitialized: boolean;
-  
   // Client management
   loadClients: () => Promise<void>;
   loadClientData: (clientId: string) => Promise<void>;
-  refreshClients: () => Promise<void>;
-  
+  refreshClients: () => Promise<void>;  
   // Search functionality
   searchQuery: string;
   searchResults: Client[];
@@ -27,8 +23,7 @@ interface ClientContextType {
   isSearching: boolean;
   handleSearchChange: (value: string) => void;
   handleSelectBusiness: (client: Client) => void;
-  handleClearSearch: () => void;
-  
+  handleClearSearch: () => void; 
   // Location filtering
   selectedLocation: string;
   setSelectedLocation: (location: string) => void;
@@ -37,7 +32,6 @@ interface ClientContextType {
 }
 
 const ClientContext = createContext<ClientContextType | undefined>(undefined);
-
 export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [clients, setClients] = useState<Client[]>([]);
   const [selectedClientId, setSelectedClientId] = useState<string>('');
@@ -57,12 +51,10 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const [isSearching, setIsSearching] = useState(false);
 
   const selectedClient = clients.find(c => c.id === selectedClientId) || null;
-
   // Initialize database and load clients on mount
   useEffect(() => {
     initializeApp();
   }, []);
-
   // Load client data when selection changes
   useEffect(() => {
     if (selectedClientId) {
@@ -75,7 +67,6 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     const uniqueLocations = Array.from(new Set(clients.map(c => c.area).filter(Boolean)));
     setLocations(uniqueLocations);
   }, [clients]);
-
   // Filter clients based on selected location
   useEffect(() => {
     if (selectedLocation) {
@@ -151,7 +142,6 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     if (searchDebounceTimer) {
       clearTimeout(searchDebounceTimer);
     }
-
     // If empty search, clear results but keep selected business
     if (!value.trim()) {
       setSearchResults([]);
@@ -189,6 +179,7 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     setShowSearchResults(false);
   };
 
+  
   // Clear search and selected business
   const handleClearSearch = () => {
     setSearchQuery('');
@@ -225,8 +216,7 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     locations,
     filteredClients,
   };
-
-  return <ClientContext.Provider value={value}>{children}</ClientContext.Provider>;
+ return <ClientContext.Provider value={value}>{children}</ClientContext.Provider>;
 };
 
 export const useClient = () => {

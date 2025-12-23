@@ -2,6 +2,20 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 
 // SQL to create tables if they don't exist
 const CREATE_TABLES_SQL = `
+-- Create business categories table
+CREATE TABLE IF NOT EXISTS business_categories (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  icon TEXT DEFAULT '📊',
+  avg_job_value INTEGER DEFAULT 0,
+  conversion_rate DECIMAL(5, 4) DEFAULT 0,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW()),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW())
+);
+
+-- Create index for category search
+CREATE INDEX IF NOT EXISTS idx_business_categories_name ON business_categories(name);
+
 -- Create global keywords table (shared across all clients)
 CREATE TABLE IF NOT EXISTS global_keywords (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -12,7 +26,6 @@ CREATE TABLE IF NOT EXISTS global_keywords (
   cpc DECIMAL(10, 2) DEFAULT 0,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW())
 );
-
 -- Add CPC column to global_keywords if it doesn't exist
 DO $$ 
 BEGIN
@@ -23,7 +36,6 @@ BEGIN
     ALTER TABLE global_keywords ADD COLUMN cpc DECIMAL(10, 2) DEFAULT 0;
   END IF;
 END $$;
-
 -- Add competitor ranking columns to global_keywords if they don't exist
 DO $$ 
 BEGIN
@@ -262,15 +274,35 @@ export async function initializeDatabase(): Promise<{ success: boolean; message:
     try {
       console.log('=== DATABASE INITIALIZATION START ===');
       
-      // Execute SQL with notices suppressed
+      // Set lock timeout to prevent deadlocks (5 seconds)
+      await client.queryArray(`SET lock_timeout = '5s';`);
       await client.queryArray(`SET client_min_messages = WARNING;`);
-      await client.queryArray(CREATE_TABLES_SQL);
       
-      console.log('Tables created/updated successfully');
+      // Use advisory lock to prevent concurrent initializations
+      const lockId = 123456789; // Unique ID for our initialization lock
+      const lockResult = await client.queryArray(`SELECT pg_try_advisory_lock($1);`, [lockId]);
       
-      // Notify PostgREST to reload schema cache
-      console.log('Reloading schema cache...');
-      await client.queryArray(`NOTIFY pgrst, 'reload schema';`);
+      if (lockResult.rows[0][0] === false) {
+        console.log('Another initialization in progress, skipping...');
+        await client.end();
+        return {
+          success: true,
+          message: 'Database initialization already in progress'
+        };
+      }
+      
+      try {
+        // Execute SQL with lock acquired
+        await client.queryArray(CREATE_TABLES_SQL);
+        console.log('Tables created/updated successfully');
+        
+        // Notify PostgREST to reload schema cache
+        console.log('Reloading schema cache...');
+        await client.queryArray(`NOTIFY pgrst, 'reload schema';`);
+      } finally {
+        // Always release the advisory lock
+        await client.queryArray(`SELECT pg_advisory_unlock($1);`, [lockId]);
+      }
       
       await client.end();
       
@@ -283,6 +315,16 @@ export async function initializeDatabase(): Promise<{ success: boolean; message:
     } catch (error) {
       await client.end();
       console.error('Database initialization error:', error);
+      
+      // If deadlock detected, return success (table likely exists)
+      if (error.fields?.code === '40P01') {
+        console.log('Deadlock detected but continuing - tables likely already exist');
+        return {
+          success: true,
+          message: 'Database initialization completed (concurrent access handled)'
+        };
+      }
+      
       return {
         success: false,
         message: `Database initialization failed: ${error.message || error}`

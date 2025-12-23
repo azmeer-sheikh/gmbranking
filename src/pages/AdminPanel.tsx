@@ -662,25 +662,31 @@ export default function AdminPanel() {
 
       {/* Main Content */}
       <div className="container mx-auto px-6 py-8">
-        <Tabs defaultValue="clients" className="space-y-6">
-          <TabsList className="grid w-full max-w-3xl grid-cols-4 h-12 bg-white/80 backdrop-blur-sm border border-slate-200 p-1">
-            <TabsTrigger value="clients" className="gap-2 h-10">
-              <Building className="size-4" />
-              <span className="hidden sm:inline">Clients</span>
-            </TabsTrigger>
-            <TabsTrigger value="keywords" className="gap-2 h-10">
-              <Hash className="size-4" />
-              <span className="hidden sm:inline">Global Keywords</span>
-            </TabsTrigger>
-            <TabsTrigger value="competitors" className="gap-2 h-10">
-              <Target className="size-4" />
-              <span className="hidden sm:inline">Competitors</span>
-            </TabsTrigger>
-            <TabsTrigger value="import" className="gap-2 h-10">
-              <Upload className="size-4" />
-              <span className="hidden sm:inline">Bulk Import</span>
-            </TabsTrigger>
-          </TabsList>
+        <Tabs defaultValue="clients" className="space-y-8">
+          {/* Advanced Admin Tabs Navigation */}
+          <div className="relative flex flex-col items-center py-6">
+            {/* Decorative Top Element */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-transparent via-yellow-500 to-transparent rounded-full opacity-60" />
+            
+            <TabsList className="grid w-full max-w-4xl grid-cols-4 h-16 bg-gradient-to-br from-white to-slate-50 border-2 border-slate-300 p-2.5 rounded-2xl shadow-xl relative">
+              <TabsTrigger value="clients" className="gap-2.5 h-full rounded-xl data-[state=active]:shadow-2xl">
+                <Building className="size-5" />
+                <span className="hidden sm:inline text-sm">Clients</span>
+              </TabsTrigger>
+              <TabsTrigger value="keywords" className="gap-2.5 h-full rounded-xl data-[state=active]:shadow-2xl">
+                <Hash className="size-5" />
+                <span className="hidden sm:inline text-sm">Global Keywords</span>
+              </TabsTrigger>
+              <TabsTrigger value="competitors" className="gap-2.5 h-full rounded-xl data-[state=active]:shadow-2xl">
+                <Target className="size-5" />
+                <span className="hidden sm:inline text-sm">Competitors</span>
+              </TabsTrigger>
+              <TabsTrigger value="import" className="gap-2.5 h-full rounded-xl data-[state=active]:shadow-2xl">
+                <Upload className="size-5" />
+                <span className="hidden sm:inline text-sm">Bulk Import</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* Clients Tab */}
           <TabsContent value="clients" className="space-y-4">

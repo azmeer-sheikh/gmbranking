@@ -19,12 +19,16 @@ import { generateKeywordsForCategory } from '../lib/sample-data';
 import { calculateCustomerRevenueLoss } from '../lib/competitor-data';
 import { useClient } from '../context/ClientContext';
 import type { Keyword } from '../lib/types';
+import { projectId, publicAnonKey } from '../utils/supabase/info';
 import logoImage from 'figma:asset/151ae950a420fc00aecc02baf37c66331b79db9c.png';
 
 export default function MainApp() {
   const [activeTab, setActiveTab] = useState('map');
   const [selectedCategory, setSelectedCategory] = useState('junk_removal');
   const [keywords, setKeywords] = useState(generateKeywordsForCategory('junk_removal', 'loc1'));
+  const [categories, setCategories] = useState(businessCategories);
+  const [categorySearch, setCategorySearch] = useState('');
+  const [loadingCategories, setLoadingCategories] = useState(false);
   
   // Use ClientContext for all client-related state
   const {
@@ -49,6 +53,46 @@ export default function MainApp() {
   } = useClient();
   
   const category = getCategoryById(selectedCategory);
+
+  // Fetch categories from database
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setLoadingCategories(true);
+        const response = await fetch(
+          `https://${projectId}.supabase.co/functions/v1/make-server-dc7dce20/categories${categorySearch ? `?search=${encodeURIComponent(categorySearch)}` : ''}`,
+          {
+            headers: { 'Authorization': `Bearer ${publicAnonKey}` }
+          }
+        );
+        const data = await response.json();
+        if (data.categories) {
+          // Transform database format to frontend format
+          const transformedCategories = data.categories.map((cat: any) => ({
+            id: cat.id,
+            name: cat.name,
+            icon: cat.icon,
+            avgJobValue: cat.avg_job_value,
+            conversionRate: cat.conversion_rate,
+            description: ''
+          }));
+          setCategories(transformedCategories);
+        }
+      } catch (error) {
+        console.error('Failed to fetch categories:', error);
+        // Keep using hardcoded categories as fallback
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+
+    // Debounce the search
+    const timeoutId = setTimeout(() => {
+      fetchCategories();
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [categorySearch]);
 
   // Load client data and update keywords when client changes
   useEffect(() => {
@@ -176,101 +220,116 @@ export default function MainApp() {
   const hasSocialData = selectedClientData?.social_media && selectedClientData.social_media.length > 0;
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#F7F9FB' }}>
-      {/* Header */}
+    <div className="min-h-screen bg-slate-50">
+      {/* Modern Header */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+        <div className="container mx-auto px-8 py-5">
+          <div className="flex items-center justify-between gap-6">
+            {/* Logo & Status */}
+            <div className="flex items-center gap-4 min-w-fit">
               <img 
                 src={logoImage} 
                 alt="Hive Recap" 
-                className="h-16"
+                className="h-14"
               />
               {dbInitialized && (
-                <Badge className="bg-green-500 text-white text-[10px] px-2 py-0.5 animate-pulse">
-                  ● LIVE
+                <Badge className="bg-green-500 text-white px-3 py-1 animate-pulse">
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 bg-white rounded-full"></span>
+                    LIVE
+                  </span>
                 </Badge>
               )}
             </div>
-            <div className="flex items-center gap-4">
-              {/* GBP Score - Dynamic Colors Based on Score */}
-              <div className={`text-center px-4 py-2 rounded-lg bg-gradient-to-br ${gbpStyle.bg} border ${gbpStyle.border}`}>
-                <div className="flex items-center gap-2">
-                  <Star className={`size-4 ${gbpStyle.iconColor}`} />
-                  <span className={`text-xs ${gbpStyle.iconColor}`}>GBP Score</span>
+            
+            {/* Stats Cards - Consistent Height & Width */}
+            <div className="flex items-center gap-3 flex-1 justify-end">
+              {/* GBP Score */}
+              <div className={`flex flex-col items-center justify-center min-w-[120px] h-20 px-5 rounded-xl bg-gradient-to-br ${gbpStyle.bg} border-2 ${gbpStyle.border} transition-all hover:scale-105`}>
+                <div className="flex items-center gap-1.5 mb-1">
+                  <Star className={`size-3.5 ${gbpStyle.iconColor}`} />
+                  <span className={`text-xs uppercase tracking-wide ${gbpStyle.iconColor}`}>GBP Score</span>
                 </div>
-                <p className={`text-2xl mt-1 ${gbpStyle.textColor}`} style={{ fontWeight: 700 }}>
+                <p className={`text-2xl ${gbpStyle.textColor}`} style={{ fontWeight: 700 }}>
                   {gbpScore}
                 </p>
               </div>
 
               {/* Keywords Count */}
-              <div className="text-center px-4 py-2 rounded-lg bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-200">
-                <div className="flex items-center gap-2">
-                  <Hash className="size-4" style={{ color: '#0052CC' }} />
-                  <span className="text-xs" style={{ color: '#0052CC' }}>Keywords</span>
+              <div className="flex flex-col items-center justify-center min-w-[120px] h-20 px-5 rounded-xl bg-gradient-to-br from-blue-50 to-cyan-50 border-2 border-blue-200 transition-all hover:scale-105">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <Hash className="size-3.5 text-blue-600" />
+                  <span className="text-xs uppercase tracking-wide text-blue-600">Keywords</span>
                 </div>
-                <p className="text-2xl mt-1" style={{ fontWeight: 700, color: '#0052CC' }}>{totalKeywords}</p>
+                <p className="text-2xl text-blue-700" style={{ fontWeight: 700 }}>{totalKeywords}</p>
               </div>
 
               {/* Average Rank */}
-              <div className="text-center px-4 py-2 rounded-lg bg-gradient-to-br from-purple-50 to-violet-50 border border-purple-200">
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="size-4 text-purple-600" />
-                  <span className="text-xs text-purple-600">Avg Rank</span>
+              <div className="flex flex-col items-center justify-center min-w-[120px] h-20 px-5 rounded-xl bg-gradient-to-br from-purple-50 to-violet-50 border-2 border-purple-200 transition-all hover:scale-105">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <TrendingUp className="size-3.5 text-purple-600" />
+                  <span className="text-xs uppercase tracking-wide text-purple-600">Avg Rank</span>
                 </div>
-                <p className="text-2xl text-purple-700 mt-1" style={{ fontWeight: 700 }}>#{calculateAverageRank()}</p>
+                <p className="text-2xl text-purple-700" style={{ fontWeight: 700 }}>#{calculateAverageRank()}</p>
               </div>
 
               {/* Revenue Loss */}
-              <div className="text-center px-4 py-2 rounded-lg bg-gradient-to-br from-red-50 to-rose-50 border border-red-200">
-                <p className="text-xs text-red-600">Monthly Loss</p>
-                <p className="text-xl text-red-600 mt-1" style={{ fontWeight: 700, color: '#FF3B30' }}>-${calculateTotalRevenueLoss().toLocaleString()}</p>
-                <p className="text-xs text-red-500 mt-1">${calculateYearlyRevenue().toLocaleString()}/year</p>
-              </div> 
-            
+              <div className="flex flex-col items-center justify-center min-w-[140px] h-20 px-5 rounded-xl bg-gradient-to-br from-red-50 to-rose-50 border-2 border-red-200 transition-all hover:scale-105">
+                <span className="text-xs uppercase tracking-wide text-red-600 mb-1">Monthly Loss</span>
+                <p className="text-xl text-red-600" style={{ fontWeight: 700 }}>-${calculateTotalRevenueLoss().toLocaleString()}</p>
+                <p className="text-[10px] text-red-500 mt-0.5">${calculateYearlyRevenue().toLocaleString()}/yr</p>
+              </div>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Business Category & Client Search */}
-      <div className="bg-gradient-to-b from-white to-slate-50 border-b-2 border-slate-200">
-        <div className="container mx-auto px-6 py-5">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
-            {/* Business Category */}
+      {/* Control Panel - Business Category & Search */}
+      <div className="bg-white border-b border-slate-200">
+        <div className="container mx-auto px-8 py-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-end">
+            {/* Business Category with Search */}
             <div className="lg:col-span-3">
-              <label className="text-xs text-slate-600 mb-1.5 block" style={{ fontWeight: 600 }}>
+              <label className="block text-xs uppercase tracking-wider text-slate-600 mb-2.5" style={{ fontWeight: 600 }}>
                 Business Category
               </label>
+              <div className="relative">
+                {loadingCategories && (
+                  <Loader2 className="size-4 text-blue-500 absolute right-3 top-3.5 animate-spin" />
+                )}
+              </div>
               <Select value={selectedCategory} onValueChange={handleCategoryChange}>
-                <SelectTrigger className="w-full h-10 bg-white shadow-sm">
+                <SelectTrigger className="w-full h-11 bg-slate-50 border-slate-200 hover:bg-slate-100 transition-colors">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
-                  {businessCategories.map(cat => (
+                <SelectContent className="max-h-[300px] overflow-y-auto">
+                  {categories.map(cat => (
                     <SelectItem key={cat.id} value={cat.id}>
                       <div className="flex items-center gap-2">
-                        <span>{cat.icon}</span>
+          
                         <span>{cat.name}</span>
                       </div>
                     </SelectItem>
                   ))}
+                  {categories.length === 0 && (
+                    <div className="px-2 py-6 text-center text-sm text-slate-500">
+                      No categories found
+                    </div>
+                  )}
                 </SelectContent>
               </Select>
             </div>
 
             {/* Business Search */}
             <div className="lg:col-span-6 relative">
-              <label className="text-xs text-slate-600 mb-1.5 block" style={{ fontWeight: 600 }}>
+              <label className="block text-xs uppercase tracking-wider text-slate-600 mb-2.5" style={{ fontWeight: 600 }}>
                 Search Business
               </label>
               <div className="relative">
                 {isSearching ? (
-                  <Loader2 className="size-4 text-blue-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none animate-spin" />
+                  <Loader2 className="size-4 text-blue-500 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none animate-spin" />
                 ) : (
-                  <Search className="size-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <Search className="size-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
                 )}
                 <Input
                   type="text"
@@ -283,13 +342,13 @@ export default function MainApp() {
                       handleSearchChange(searchQuery);
                     }
                   }}
-                  className="pl-10 pr-8 h-10 bg-white shadow-sm"
+                  className="pl-11 pr-10 h-11 bg-slate-50 border-slate-200 hover:bg-slate-100 transition-colors"
                   disabled={loading}
                 />
                 {searchQuery && (
                   <button
                     onClick={handleClearSearch}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-slate-100 rounded-full transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 hover:bg-slate-200 rounded-lg transition-colors"
                     title="Clear search"
                   >
                     <X className="size-4 text-slate-400 hover:text-slate-600" />
@@ -407,15 +466,15 @@ export default function MainApp() {
             {/* Business Metrics */}
             <div className="lg:col-span-3">
               {category && (
-                <Card className="px-4 py-2">
-                  <div className="grid grid-cols-2 gap-2">
+                <Card className="px-5 py-3 bg-gradient-to-br from-yellow-50 to-amber-50 border-2 border-yellow-200">
+                  <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <p className="text-xs text-slate-500">Avg Job</p>
-                      <p className="text-sm text-slate-900">${category.avgJobValue.toLocaleString()}</p>
+                      <p className="text-xs uppercase tracking-wide text-slate-600">Avg Job</p>
+                      <p className="text-base text-slate-900 mt-1" style={{ fontWeight: 600 }}>${category.avgJobValue.toLocaleString()}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-slate-500">Conv Rate</p>
-                      <p className="text-sm text-slate-900">{(category.conversionRate * 100).toFixed(0)}%</p>
+                      <p className="text-xs uppercase tracking-wide text-slate-600">Conv Rate</p>
+                      <p className="text-base text-slate-900 mt-1" style={{ fontWeight: 600 }}>{(category.conversionRate * 100).toFixed(0)}%</p>
                     </div>
                   </div>
                 </Card>
@@ -427,32 +486,32 @@ export default function MainApp() {
 
       {/* Active Filter Indicator */}
       {selectedClient && (
-        <div className="bg-yellow-600 border-b border-yellow-600">
-          <div className="container mx-auto px-6 py-3">
+        <div className="bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 border-b-2 border-yellow-700 shadow-lg">
+          <div className="container mx-auto px-8 py-5">
             <div className="flex items-center justify-between text-white">
-              <div className="flex items-center gap-3">
-                <div className="p-1.5 bg-white/20 rounded-lg backdrop-blur-sm">
-                  <Building2 className="size-4" />
+              <div className="flex items-center gap-5">
+                <div className="p-2.5 bg-white/20 rounded-xl backdrop-blur-sm border border-white/30 shadow-lg">
+                  <Building2 className="size-5.5" />
                 </div>
                 <div>
-                  <p className="text-xs opacity-90">Filtering all data for:</p>
-                  <p className="text-sm" style={{ fontWeight: 700 }}>{selectedClient.business_name}</p>
+                  <p className="text-xs uppercase tracking-wider opacity-95 mb-0.5" style={{ fontWeight: 600 }}>Active Client</p>
+                  <p className="text-lg" style={{ fontWeight: 700 }}>{selectedClient.business_name}</p>
                 </div>
-                <div className="h-6 w-px bg-white/30 mx-2" />
-                <div className="flex items-center gap-4 text-xs">
-                  <div className="flex items-center gap-1.5">
-                    <MapPin className="size-3" />
-                    <span>{selectedClient.area}</span>
+                <div className="h-10 w-px bg-white/30 mx-1" />
+                <div className="flex items-center gap-6 text-sm">
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/15 backdrop-blur-sm">
+                    <MapPin className="size-4" />
+                    <span style={{ fontWeight: 600 }}>{selectedClient.area}</span>
                   </div>
                   {selectedClient.category && (
-                    <div className="flex items-center gap-1.5">
-                      <Hash className="size-3" />
-                      <span>{selectedClient.category}</span>
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/15 backdrop-blur-sm">
+                      <Hash className="size-4" />
+                      <span style={{ fontWeight: 600 }}>{selectedClient.category}</span>
                     </div>
                   )}
-                  <div className="flex items-center gap-1.5">
-                    <TrendingUp className="size-3" />
-                    <span>Avg Rank: #{calculateAverageRank()}</span>
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/15 backdrop-blur-sm">
+                    <TrendingUp className="size-4" />
+                    <span style={{ fontWeight: 600 }}>Rank: #{calculateAverageRank()}</span>
                   </div>
                 </div>
               </div>
@@ -460,7 +519,7 @@ export default function MainApp() {
                 onClick={handleClearSearch}
                 variant="outline"
                 size="sm"
-                className="gap-2 bg-white/10 border-white/30 text-white hover:bg-white/20"
+                className="gap-2 bg-white/20 border-white/40 text-white hover:bg-white/30 hover:border-white/60 h-10 px-5 backdrop-blur-sm shadow-lg transition-all hover:scale-105"
               >
                 <X className="size-4" />
                 View All Businesses
@@ -471,35 +530,41 @@ export default function MainApp() {
       )}
 
       {/* Main Content */}
-      <div className="container mx-auto px-6 py-8">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full max-w-5xl mx-auto grid-cols-5 h-12 bg-white/80 backdrop-blur-sm border border-slate-200 p-1">
-            <TabsTrigger value="map" className="gap-2 h-10 text-sm">
-              <MapPin className="size-4" />
-              <span className="hidden sm:inline">Map View</span>
-              <span className="sm:hidden">Map</span>
-            </TabsTrigger>
-            <TabsTrigger value="keywords" className="gap-2 h-10 text-sm">
-              <Search className="size-4" />
-              <span className="hidden sm:inline">Keywords</span>
-              <span className="sm:hidden">KWs</span>
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="gap-2 h-10 text-sm">
-              <BarChart3 className="size-4" />
-              <span className="hidden sm:inline">Analytics</span>
-              <span className="sm:hidden">Stats</span>
-            </TabsTrigger>
-            <TabsTrigger value="seo" className="gap-2 h-10 text-sm">
-              <FileSearch className="size-4" />
-              <span className="hidden sm:inline">SEO Analysis</span>
-              <span className="sm:hidden">SEO</span>
-            </TabsTrigger>
-            <TabsTrigger value="social" className="gap-2 h-10 text-sm">
-              <Share2 className="size-4" />
-              <span className="hidden sm:inline">Social Media</span>
-              <span className="sm:hidden">Social</span>
-            </TabsTrigger>
-          </TabsList>
+      <div className="container mx-auto px-8 py-10">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-10">
+          {/* Advanced Tabs Navigation */}
+          <div className="relative flex flex-col items-center py-6">
+            {/* Decorative Top Element */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-transparent via-yellow-500 to-transparent rounded-full opacity-60" />
+            
+            <TabsList className="grid w-full max-w-7xl grid-cols-5 h-16 bg-gradient-to-br from-white to-slate-50 border-2 border-slate-300 p-2.5 rounded-2xl shadow-xl relative">
+              <TabsTrigger value="map" className="gap-2.5 h-full rounded-xl data-[state=active]:shadow-2xl">
+                <MapPin className="size-5" />
+                <span className="hidden sm:inline text-sm">Map View</span>
+                <span className="sm:hidden text-sm">Map</span>
+              </TabsTrigger>
+              <TabsTrigger value="keywords" className="gap-2.5 h-full rounded-xl data-[state=active]:shadow-2xl">
+                <Search className="size-5" />
+                <span className="hidden sm:inline text-sm">Keywords</span>
+                <span className="sm:hidden text-sm">KWs</span>
+              </TabsTrigger>
+              <TabsTrigger value="analytics" className="gap-2.5 h-full rounded-xl data-[state=active]:shadow-2xl">
+                <BarChart3 className="size-5" />
+                <span className="hidden sm:inline text-sm">Analytics</span>
+                <span className="sm:hidden text-sm">Stats</span>
+              </TabsTrigger>
+              <TabsTrigger value="seo" className="gap-2.5 h-full rounded-xl data-[state=active]:shadow-2xl">
+                <FileSearch className="size-5" />
+                <span className="hidden sm:inline text-sm">SEO Analysis</span>
+                <span className="sm:hidden text-sm">SEO</span>
+              </TabsTrigger>
+              <TabsTrigger value="social" className="gap-2.5 h-full rounded-xl data-[state=active]:shadow-2xl">
+                <Share2 className="size-5" />
+                <span className="hidden sm:inline text-sm">Social Media</span>
+                <span className="sm:hidden text-sm">Social</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* Keep GoogleMapView always mounted, show/hide with CSS to prevent removeChild errors */}
           <div 
@@ -1230,21 +1295,26 @@ export default function MainApp() {
             </div>
           </div>
 
-          <Tabs defaultValue="seasonal" className="space-y-6">
-            <TabsList className="grid w-full max-w-3xl mx-auto grid-cols-3 h-12 bg-white/80 backdrop-blur-sm border border-slate-200 p-1">
-              <TabsTrigger value="seasonal" className="gap-2 h-10 text-sm">
-                <span className="hidden lg:inline">Seasonal Planner</span>
-                <span className="lg:hidden">Seasonal</span>
-              </TabsTrigger>
-              <TabsTrigger value="devices" className="gap-2 h-10 text-sm">
-                <span className="hidden lg:inline">Mobile vs Desktop</span>
-                <span className="lg:hidden">Devices</span>
-              </TabsTrigger>
-              <TabsTrigger value="reviews" className="gap-2 h-10 text-sm">
-                <span className="hidden lg:inline">Review Templates</span>
-                <span className="lg:hidden">Reviews</span>
-              </TabsTrigger>
-            </TabsList>
+          <Tabs defaultValue="seasonal" className="space-y-8">
+            {/* Advanced GMB Tools Sub-Tabs */}
+            <div className="relative flex flex-col items-center py-4">
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-0.5 bg-gradient-to-r from-transparent via-yellow-400 to-transparent rounded-full opacity-50" />
+              
+              <TabsList className="grid w-full max-w-4xl mx-auto grid-cols-3 h-14 bg-gradient-to-br from-white to-slate-50 border-2 border-slate-300 p-2 rounded-xl shadow-lg relative">
+                <TabsTrigger value="seasonal" className="gap-2.5 h-full rounded-lg data-[state=active]:shadow-xl">
+                  <span className="hidden lg:inline text-sm">Seasonal Planner</span>
+                  <span className="lg:hidden text-sm">Seasonal</span>
+                </TabsTrigger>
+                <TabsTrigger value="devices" className="gap-2.5 h-full rounded-lg data-[state=active]:shadow-xl">
+                  <span className="hidden lg:inline text-sm">Mobile vs Desktop</span>
+                  <span className="lg:hidden text-sm">Devices</span>
+                </TabsTrigger>
+                <TabsTrigger value="reviews" className="gap-2.5 h-full rounded-lg data-[state=active]:shadow-xl">
+                  <span className="hidden lg:inline text-sm">Review Templates</span>
+                  <span className="lg:hidden text-sm">Reviews</span>
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
             <TabsContent value="seasonal" className="space-y-6">
               <SeasonalCampaignPlanner keywords={keywords} />
