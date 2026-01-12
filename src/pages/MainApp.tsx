@@ -6,21 +6,21 @@ import { Card } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { MapPin, BarChart3, Search, Building2, Star, Hash, TrendingUp, Wrench, FileSearch, Share2, CheckCircle, AlertTriangle, Globe, Facebook, Instagram, Twitter, Linkedin, ThumbsUp, MessageCircle, Users, Calendar, X, Loader2, Settings } from 'lucide-react';
+import { MapPin, BarChart3, Search, Building2, Star, Hash, TrendingUp, Wrench, FileSearch, Share2, CheckCircle, AlertTriangle, Globe, Facebook, Instagram, Twitter, Linkedin, ThumbsUp, MessageCircle, Users, Calendar, X, Loader2, Settings, DollarSign, Phone, Percent, Lock, ArrowRight } from 'lucide-react';
 import MapView from '../components/MapView';
 import GoogleMapView from '../components/GoogleMapView';
 import KeywordsView from '../components/KeywordsView';
 import AnalyticsView from '../components/AnalyticsView';
 import SeasonalCampaignPlanner from '../components/SeasonalCampaignPlanner';
 import MobileDesktopSplit from '../components/MobileDesktopSplit';
-import ReviewResponseTemplates from '../components/ReviewResponseTemplates';
 import { businessCategories, getCategoryById } from '../lib/business-categories';
 import { generateKeywordsForCategory } from '../lib/sample-data';
 import { calculateCustomerRevenueLoss } from '../lib/competitor-data';
 import { useClient } from '../context/ClientContext';
 import type { Keyword } from '../lib/types';
 import { projectId, publicAnonKey } from '../utils/supabase/info';
-import logoImage from 'figma:asset/151ae950a420fc00aecc02baf37c66331b79db9c.png';
+
+const logoImage = 'https://hivetechsol.com/wp-content/uploads/2025/02/Hive-Tech-Logo-Black-e1727446783577-removebg-preview.webp';
 
 export default function MainApp() {
   const [activeTab, setActiveTab] = useState('map');
@@ -29,6 +29,10 @@ export default function MainApp() {
   const [categories, setCategories] = useState(businessCategories);
   const [categorySearch, setCategorySearch] = useState('');
   const [loadingCategories, setLoadingCategories] = useState(false);
+  
+  // Profit Simulator state
+  const [avgCustomerValue, setAvgCustomerValue] = useState(500);
+  const [closingRate, setClosingRate] = useState(20);
   
   // Use ClientContext for all client-related state
   const {
@@ -220,75 +224,93 @@ export default function MainApp() {
   const hasSocialData = selectedClientData?.social_media && selectedClientData.social_media.length > 0;
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* Modern Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
-        <div className="container mx-auto px-8 py-5">
-          <div className="flex items-center justify-between gap-6">
-            {/* Logo & Status */}
-            <div className="flex items-center gap-4 min-w-fit">
+    <div className="min-h-screen bg-white">
+      {/* Executive Audit Header - Bank Statement Style */}
+      <header className="bg-white border-b-2 border-slate-300 py-6 px-8">
+        <div className="max-w-[1920px] mx-auto">
+          <div className="flex items-center justify-between">
+            {/* Left: Logo + Confidential Badge */}
+            <div className="flex items-center gap-4">
               <img 
                 src={logoImage} 
                 alt="Hive Recap" 
-                className="h-14"
+                className="h-12"
               />
-              {dbInitialized && (
-                <Badge className="bg-green-500 text-white px-3 py-1 animate-pulse">
-                  <span className="flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 bg-white rounded-full"></span>
-                    LIVE
-                  </span>
-                </Badge>
-              )}
+              <Badge variant="secondary" className="bg-slate-100 text-slate-600 px-4 py-1.5 text-xs uppercase tracking-wider border border-slate-300">
+                Financial Audit Report
+              </Badge>
             </div>
             
-            {/* Stats Cards - Consistent Height & Width */}
-            <div className="flex items-center gap-3 flex-1 justify-end">
-              {/* GBP Score */}
-              <div className={`flex flex-col items-center justify-center min-w-[120px] h-20 px-5 rounded-xl bg-gradient-to-br ${gbpStyle.bg} border-2 ${gbpStyle.border} transition-all hover:scale-105`}>
-                <div className="flex items-center gap-1.5 mb-1">
-                  <Star className={`size-3.5 ${gbpStyle.iconColor}`} />
-                  <span className={`text-xs uppercase tracking-wide ${gbpStyle.iconColor}`}>GBP Score</span>
-                </div>
-                <p className={`text-2xl ${gbpStyle.textColor}`} style={{ fontWeight: 700 }}>
-                  {gbpScore}
-                </p>
-              </div>
-
-              {/* Keywords Count */}
-              <div className="flex flex-col items-center justify-center min-w-[120px] h-20 px-5 rounded-xl bg-gradient-to-br from-blue-50 to-cyan-50 border-2 border-blue-200 transition-all hover:scale-105">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <Hash className="size-3.5 text-blue-600" />
-                  <span className="text-xs uppercase tracking-wide text-blue-600">Keywords</span>
-                </div>
-                <p className="text-2xl text-blue-700" style={{ fontWeight: 700 }}>{totalKeywords}</p>
-              </div>
-
-              {/* Average Rank */}
-              <div className="flex flex-col items-center justify-center min-w-[120px] h-20 px-5 rounded-xl bg-gradient-to-br from-purple-50 to-violet-50 border-2 border-purple-200 transition-all hover:scale-105">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <TrendingUp className="size-3.5 text-purple-600" />
-                  <span className="text-xs uppercase tracking-wide text-purple-600">Avg Rank</span>
-                </div>
-                <p className="text-2xl text-purple-700" style={{ fontWeight: 700 }}>#{calculateAverageRank()}</p>
-              </div>
-
-              {/* Revenue Loss */}
-              <div className="flex flex-col items-center justify-center min-w-[140px] h-20 px-5 rounded-xl bg-gradient-to-br from-red-50 to-rose-50 border-2 border-red-200 transition-all hover:scale-105">
-                <span className="text-xs uppercase tracking-wide text-red-600 mb-1">Monthly Loss</span>
-                <p className="text-xl text-red-600" style={{ fontWeight: 700 }}>-${calculateTotalRevenueLoss().toLocaleString()}</p>
-                <p className="text-[10px] text-red-500 mt-0.5">${calculateYearlyRevenue().toLocaleString()}/yr</p>
-              </div>
+            {/* Right: Prepared For + Date */}
+            <div className="text-right font-mono">
+              <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Prepared For</p>
+              <p className="text-lg font-semibold text-slate-900">{selectedClient?.business_name || 'Select a Business'}</p>
+              <p className="text-xs text-slate-500 mt-1">
+                Report Date: {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+              </p>
             </div>
           </div>
         </div>
       </header>
 
+      {/* Client Selector Bar */}
+      <div className="bg-slate-50 border-b border-slate-200 py-4 px-8">
+        <div className="max-w-[1920px] mx-auto">
+          <div className="flex items-center gap-4">
+            {/* Search/Select Client */}
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+              <Input
+                type="text"
+                placeholder="Search business name..."
+                value={searchQuery}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                className="pl-10 h-10 bg-white border-slate-300"
+              />
+              {searchQuery && (
+                <button
+                  onClick={handleClearSearch}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-slate-100 rounded"
+                >
+                  <X className="size-4 text-slate-500" />
+                </button>
+              )}
+              
+              {/* Search Results Dropdown */}
+              {showSearchResults && searchResults.length > 0 && (
+                <Card className="absolute top-full mt-2 w-full max-h-96 overflow-y-auto z-50 shadow-2xl border-2">
+                  {searchResults.map((client) => (
+                    <button
+                      key={client.id}
+                      onClick={() => handleSelectBusiness(client)}
+                      className="w-full p-3 text-left hover:bg-slate-50 border-b last:border-b-0 transition-colors"
+                    >
+                      <p className="font-semibold text-slate-900">{client.business_name}</p>
+                      {client.category_name && (
+                        <p className="text-xs text-slate-500 mt-0.5">{client.category_name}</p>
+                      )}
+                    </button>
+                  ))}
+                </Card>
+              )}
+            </div>
+            
+            {/* Admin Link */}
+            {/* <Link to="/admin">
+              <Button variant="outline" size="sm" className="gap-2">
+                <Settings className="size-4" />
+                Admin Panel
+              </Button>
+            </Link> */}
+          </div>
+        </div>
+      </div>
+
       {/* Control Panel - Business Category & Search */}
       <div className="bg-white border-b border-slate-200">
         <div className="container mx-auto px-8 py-6">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-end">
-            {/* Business Category with Search */}
+            {/* Business Category */}
             <div className="lg:col-span-3">
               <label className="block text-xs uppercase tracking-wider text-slate-600 mb-2.5" style={{ fontWeight: 600 }}>
                 Business Category
@@ -306,7 +328,6 @@ export default function MainApp() {
                   {categories.map(cat => (
                     <SelectItem key={cat.id} value={cat.id}>
                       <div className="flex items-center gap-2">
-          
                         <span>{cat.name}</span>
                       </div>
                     </SelectItem>
@@ -531,6 +552,243 @@ export default function MainApp() {
 
       {/* Main Content */}
       <div className="container mx-auto px-8 py-10">
+        {/* Profit Simulator Section - Moved to Main Page */}
+        <Card className="overflow-hidden border-2 border-yellow-400 shadow-xl mb-10">
+          {/* Header */}
+          <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 p-6">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 rounded-lg bg-white/20 backdrop-blur-sm">
+                <DollarSign className="size-6 text-white" />
+              </div>
+              <h2 className="text-2xl font-bold text-white">Profit Estimator</h2>
+            </div>
+            <p className="text-white/90 text-sm">
+              Adjust your business metrics below to see your potential monthly revenue opportunity
+            </p>
+          </div>
+
+          <div className="p-8">
+            {/* Two Column Layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+              {/* LEFT COLUMN - Static "Truth" Data */}
+              <div className="space-y-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <Lock className="size-5 text-slate-400" />
+                  <h3 className="text-lg font-semibold text-slate-900">Market Data (Locked)</h3>
+                </div>
+                
+                {/* Search Volume Card */}
+                <div className="bg-slate-50 rounded-xl p-5 border-2 border-slate-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <Search className="size-5 text-slate-500" />
+                      <span className="text-sm font-medium text-slate-600">Total Search Volume</span>
+                    </div>
+                    <Badge variant="secondary" className="bg-slate-200 text-slate-700">
+                      Scraped Data
+                    </Badge>
+                  </div>
+                  <p className="text-3xl font-bold text-slate-900">
+                    {keywords.reduce((sum, kw) => sum + kw.searchVolume, 0).toLocaleString()}
+                  </p>
+                  <p className="text-xs text-slate-500 mt-1">searches per month</p>
+                </div>
+
+                {/* Current Rank Card */}
+                <div className="bg-slate-50 rounded-xl p-5 border-2 border-slate-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <Hash className="size-5 text-slate-500" />
+                      <span className="text-sm font-medium text-slate-600">Average Current Rank</span>
+                    </div>
+                    <Badge variant="secondary" className="bg-slate-200 text-slate-700">
+                      Scraped Data
+                    </Badge>
+                  </div>
+                  <p className="text-3xl font-bold text-slate-900">
+                    #{(keywords.reduce((sum, kw) => sum + kw.currentRank, 0) / keywords.length).toFixed(1)}
+                  </p>
+                  <p className="text-xs text-slate-500 mt-1">across all keywords</p>
+                </div>
+
+                {/* Competitor Calls Card */}
+                <div className="bg-slate-50 rounded-xl p-5 border-2 border-slate-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <Phone className="size-5 text-slate-500" />
+                      <span className="text-sm font-medium text-slate-600">Competitor Leads (Top 3)</span>
+                    </div>
+                    <Badge variant="secondary" className="bg-slate-200 text-slate-700">
+                      Calculated
+                    </Badge>
+                  </div>
+                  <p className="text-3xl font-bold text-slate-900">
+                    {(() => {
+                      const totalVolume = keywords.reduce((sum, kw) => sum + kw.searchVolume, 0);
+                      const estimatedCalls = Math.round(totalVolume * 0.03); // 3% CTR estimate
+                      return estimatedCalls.toLocaleString();
+                    })()}
+                  </p>
+                  <p className="text-xs text-slate-500 mt-1">calls per month (est. 3% CTR)</p>
+                </div>
+              </div>
+
+              {/* RIGHT COLUMN - Interactive Sliders - DARK CONTROL PANEL */}
+              <div className="space-y-6">
+                <div className="control-panel-dark p-6 shadow-2xl">
+                  <div className="flex items-center gap-2 mb-6">
+                    <Settings className="size-5 text-yellow-400" />
+                    <h3 className="text-lg font-semibold text-white">Your Business Metrics</h3>
+                  </div>
+
+                  {/* Average Customer Value Slider */}
+                  <div className="bg-slate-700/50 rounded-xl p-5 border border-slate-600 mb-5">
+                    <div className="flex items-center gap-2 mb-3">
+                      <DollarSign className="size-5 text-yellow-400" />
+                      <label className="text-sm font-semibold text-white">
+                        What is a new customer worth to you?
+                      </label>
+                    </div>
+                    
+                    <div className="mb-4">
+                      <div className="flex items-baseline gap-2 mb-2">
+                        <span className="text-4xl font-bold text-yellow-400 font-mono">
+                          ${avgCustomerValue.toLocaleString()}
+                        </span>
+                        <span className="text-sm text-slate-300">per customer</span>
+                      </div>
+                    </div>
+
+                    <input
+                      type="range"
+                      min="100"
+                      max="5000"
+                      step="50"
+                      value={avgCustomerValue}
+                      onChange={(e) => setAvgCustomerValue(Number(e.target.value))}
+                      className="w-full h-3 bg-slate-600 rounded-lg appearance-none cursor-pointer"
+                      style={{
+                        background: `linear-gradient(to right, #FFD700 0%, #FFD700 ${((avgCustomerValue - 100) / 4900) * 100}%, #475569 ${((avgCustomerValue - 100) / 4900) * 100}%, #475569 100%)`
+                      }}
+                    />
+                    
+                    <div className="flex justify-between text-xs text-slate-400 mt-2">
+                      <span>$100</span>
+                      <span>$5,000</span>
+                    </div>
+                  </div>
+
+                  {/* Closing Rate Slider */}
+                  <div className="bg-slate-700/50 rounded-xl p-5 border border-slate-600">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Percent className="size-5 text-green-400" />
+                      <label className="text-sm font-semibold text-white">
+                        What % of calls do you close?
+                      </label>
+                    </div>
+                    
+                    <div className="mb-4">
+                      <div className="flex items-baseline gap-2 mb-2">
+                        <span className="text-4xl font-bold text-green-400 font-mono">
+                          {closingRate}%
+                        </span>
+                        <span className="text-sm text-slate-300">closing rate</span>
+                      </div>
+                    </div>
+
+                    <input
+                      type="range"
+                      min="5"
+                      max="50"
+                      step="1"
+                      value={closingRate}
+                      onChange={(e) => setClosingRate(Number(e.target.value))}
+                      className="w-full h-3 bg-slate-600 rounded-lg appearance-none cursor-pointer"
+                      style={{
+                        background: `linear-gradient(to right, #00C47E 0%, #00C47E ${((closingRate - 5) / 45) * 100}%, #475569 ${((closingRate - 5) / 45) * 100}%, #475569 100%)`
+                      }}
+                    />
+                    
+                    <div className="flex justify-between text-xs text-slate-400 mt-2">
+                      <span>5%</span>
+                      <span>50%</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Visual Connection Arrow */}
+                <div className="flex items-center justify-center py-2">
+                  <ArrowRight className="size-8 text-yellow-500 animate-pulse" strokeWidth={3} />
+                </div>
+              </div>
+            </div>
+
+            {/* Big Red Revenue Loss Number - MEDICAL REPORT STYLE */}
+            <div className="audit-card p-8 relative overflow-hidden shadow-2xl">
+              {/* Background decoration */}
+              <div className="absolute top-0 right-0 w-64 h-64 bg-red-200/20 rounded-full blur-3xl -mr-32 -mt-32"></div>
+              <div className="absolute bottom-0 left-0 w-48 h-48 bg-red-100/20 rounded-full blur-3xl -ml-24 -mb-24"></div>
+              
+              <div className="relative z-10">
+                <div className="text-center mb-4">
+                  <div className="flex items-center justify-center gap-2 mb-3">
+                    <AlertTriangle className="size-8 text-red-600" />
+                    <p className="text-sm font-bold text-red-700 uppercase tracking-wider">
+                      Monthly Revenue Opportunity
+                    </p>
+                    <AlertTriangle className="size-8 text-red-600" />
+                  </div>
+                </div>
+
+                <div className="text-center">
+                  <p className="audit-number text-6xl md:text-7xl text-red-600 mb-3">
+                    ${(() => {
+                      const totalVolume = keywords.reduce((sum, kw) => sum + kw.searchVolume, 0);
+                      const estimatedCalls = Math.round(totalVolume * 0.03); // 3% CTR
+                      const closedDeals = Math.round(estimatedCalls * (closingRate / 100));
+                      const monthlyRevenue = closedDeals * avgCustomerValue;
+                      return monthlyRevenue.toLocaleString();
+                    })()}
+                  </p>
+                  
+                  <div className="bg-white border-2 border-red-200 rounded-lg p-4 inline-block">
+                    <p className="text-sm text-slate-700 mb-1 font-semibold">
+                      Calculation Breakdown:
+                    </p>
+                    <div className="flex items-center justify-center gap-4 text-xs text-slate-600 font-mono">
+                      <span>
+                        {(() => {
+                          const totalVolume = keywords.reduce((sum, kw) => sum + kw.searchVolume, 0);
+                          const estimatedCalls = Math.round(totalVolume * 0.03);
+                          return estimatedCalls.toLocaleString();
+                        })()} calls
+                      </span>
+                      <span>×</span>
+                      <span>{closingRate}% close rate</span>
+                      <span>×</span>
+                      <span>${avgCustomerValue.toLocaleString()} per customer</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-6 text-center">
+                  <p className="text-sm text-red-700 font-semibold">
+                    ⚠️ This represents potential revenue currently being captured by competitors
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Call to Action */}
+            <div className="mt-6 text-center">
+              <p className="text-slate-600 text-sm">
+                💡 <span className="font-semibold">Pro Tip:</span> The search volume and competitor data are real market facts. 
+                Your closing rate and customer value make this <span className="font-bold text-slate-900">YOUR personalized opportunity.</span>
+              </p>
+            </div>
+          </div>
+        </Card>
+
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-10">
           {/* Advanced Tabs Navigation */}
           <div className="relative flex flex-col items-center py-6">
@@ -1309,10 +1567,6 @@ export default function MainApp() {
                   <span className="hidden lg:inline text-sm">Mobile vs Desktop</span>
                   <span className="lg:hidden text-sm">Devices</span>
                 </TabsTrigger>
-                <TabsTrigger value="reviews" className="gap-2.5 h-full rounded-lg data-[state=active]:shadow-xl">
-                  <span className="hidden lg:inline text-sm">Review Templates</span>
-                  <span className="lg:hidden text-sm">Reviews</span>
-                </TabsTrigger>
               </TabsList>
             </div>
 
@@ -1326,10 +1580,6 @@ export default function MainApp() {
                 avgJobValue={category?.avgJobValue || 500}
                 conversionRate={category?.conversionRate || 0.05}
               />
-            </TabsContent>
-
-            <TabsContent value="reviews" className="space-y-6">
-              <ReviewResponseTemplates />
             </TabsContent>
           </Tabs>
         </div>

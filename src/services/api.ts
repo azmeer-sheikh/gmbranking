@@ -205,3 +205,47 @@ export const resetAllData = async (): Promise<void> => {
     throw error;
   }
 };
+
+// Seed keywords
+export const seedKeywords = async (): Promise<{ success: boolean; message: string; details?: any }> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/seed-keywords`, {
+      method: 'POST',
+      headers,
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error('Seed keywords failed:', data);
+      return { success: false, message: data.error || data.message };
+    }
+
+    return { success: true, message: data.message, details: data.details };
+  } catch (error) {
+    console.error('Error seeding keywords:', error);
+    return { success: false, message: `Failed to seed keywords: ${error}` };
+  }
+};
+
+// Get clients
+export const getClients = async (): Promise<any[]> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/clients`, {
+      method: 'GET',
+      headers,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Error fetching clients:', errorData);
+      throw new Error(errorData.error || 'Failed to fetch clients');
+    }
+
+    const data = await response.json();
+    return data.clients || [];
+  } catch (error) {
+    console.error('Error fetching clients:', error);
+    throw error;
+  }
+};
