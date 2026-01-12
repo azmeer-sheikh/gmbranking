@@ -6,13 +6,14 @@ import { Card } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { MapPin, BarChart3, Search, Building2, Star, Hash, TrendingUp, Wrench, FileSearch, Share2, CheckCircle, AlertTriangle, Globe, Facebook, Instagram, Twitter, Linkedin, ThumbsUp, MessageCircle, Users, Calendar, X, Loader2, Settings, DollarSign, Phone, Percent, Lock, ArrowRight } from 'lucide-react';
+import { MapPin, BarChart3, Search, Building2, Star, Hash, TrendingUp, Wrench, FileSearch, Share2, CheckCircle, AlertTriangle, Globe, Facebook, Instagram, Twitter, Linkedin, ThumbsUp, MessageCircle, Users, Calendar, X, Loader2, Settings, DollarSign, Phone, Percent, Lock, ArrowRight, LogOut } from 'lucide-react';
 import MapView from '../components/MapView';
 import GoogleMapView from '../components/GoogleMapView';
 import KeywordsView from '../components/KeywordsView';
 import AnalyticsView from '../components/AnalyticsView';
 import SeasonalCampaignPlanner from '../components/SeasonalCampaignPlanner';
 import MobileDesktopSplit from '../components/MobileDesktopSplit';
+
 import { businessCategories, getCategoryById } from '../lib/business-categories';
 import { generateKeywordsForCategory } from '../lib/sample-data';
 import { calculateCustomerRevenueLoss } from '../lib/competitor-data';
@@ -23,6 +24,8 @@ import { projectId, publicAnonKey } from '../utils/supabase/info';
 const logoImage = 'https://hivetechsol.com/wp-content/uploads/2025/02/Hive-Tech-Logo-Black-e1727446783577-removebg-preview.webp';
 
 export default function MainApp() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authenticatedUser, setAuthenticatedUser] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('map');
   const [selectedCategory, setSelectedCategory] = useState('junk_removal');
   const [keywords, setKeywords] = useState(generateKeywordsForCategory('junk_removal', 'loc1'));
@@ -223,6 +226,41 @@ export default function MainApp() {
   // Check if social media data exists
   const hasSocialData = selectedClientData?.social_media && selectedClientData.social_media.length > 0;
 
+  // Handle login
+  const handleLogin = (username: string, password: string) => {
+    setIsAuthenticated(true);
+    setAuthenticatedUser(username);
+    // Store in localStorage to persist session
+    localStorage.setItem('hiverecap_auth', JSON.stringify({ username, timestamp: Date.now() }));
+  };
+
+  // Handle logout
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setAuthenticatedUser(null);
+    localStorage.removeItem('hiverecap_auth');
+  };
+
+  // Check authentication on mount
+  useEffect(() => {
+    const storedAuth = localStorage.getItem('hiverecap_auth');
+    if (storedAuth) {
+      try {
+        const auth = JSON.parse(storedAuth);
+        // Check if session is still valid (within 24 hours)
+        if (Date.now() - auth.timestamp < 24 * 60 * 60 * 1000) {
+          setIsAuthenticated(true);
+          setAuthenticatedUser(auth.username);
+        } else {
+          localStorage.removeItem('hiverecap_auth');
+        }
+      } catch (e) {
+        localStorage.removeItem('hiverecap_auth');
+      }
+    }
+  }, []);
+
+
   return (
     <div className="min-h-screen bg-white">
       {/* Executive Audit Header - Bank Statement Style */}
@@ -241,13 +279,32 @@ export default function MainApp() {
               </Badge>
             </div>
             
-            {/* Right: Prepared For + Date */}
-            <div className="text-right font-mono">
-              <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Prepared For</p>
-              <p className="text-lg font-semibold text-slate-900">{selectedClient?.business_name || 'Select a Business'}</p>
-              <p className="text-xs text-slate-500 mt-1">
-                Report Date: {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-              </p>
+            {/* Right: Prepared For + Date + Logout */}
+            <div className="flex items-center gap-6">
+              <div className="text-right font-mono">
+                <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Prepared For</p>
+                <p className="text-lg font-semibold text-slate-900">{selectedClient?.business_name || 'Select a Business'}</p>
+                <p className="text-xs text-slate-500 mt-1">
+                  Report Date: {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                </p>
+              </div>
+              
+              {/* Logout Section */}
+              <div className="pl-6 border-l border-slate-300 flex items-center gap-3">
+                <div className="text-right">
+                  <p className="text-xs text-slate-500 uppercase tracking-wider">Logged In As</p>
+                  <p className="text-sm font-semibold text-slate-900 capitalize">{authenticatedUser}</p>
+                </div>
+                <Button
+                  onClick={handleLogout}
+                  variant="outline"
+                  size="sm"
+                  className="gap-2 hover:bg-red-50 hover:border-red-300"
+                >
+                  <LogOut className="size-4" />
+                  <span className="hidden sm:inline">Logout</span>
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -552,243 +609,6 @@ export default function MainApp() {
 
       {/* Main Content */}
       <div className="container mx-auto px-8 py-10">
-        {/* Profit Simulator Section - Moved to Main Page */}
-        <Card className="overflow-hidden border-2 border-yellow-400 shadow-xl mb-10">
-          {/* Header */}
-          <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 p-6">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 rounded-lg bg-white/20 backdrop-blur-sm">
-                <DollarSign className="size-6 text-white" />
-              </div>
-              <h2 className="text-2xl font-bold text-white">Profit Estimator</h2>
-            </div>
-            <p className="text-white/90 text-sm">
-              Adjust your business metrics below to see your potential monthly revenue opportunity
-            </p>
-          </div>
-
-          <div className="p-8">
-            {/* Two Column Layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-              {/* LEFT COLUMN - Static "Truth" Data */}
-              <div className="space-y-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <Lock className="size-5 text-slate-400" />
-                  <h3 className="text-lg font-semibold text-slate-900">Market Data (Locked)</h3>
-                </div>
-                
-                {/* Search Volume Card */}
-                <div className="bg-slate-50 rounded-xl p-5 border-2 border-slate-200">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <Search className="size-5 text-slate-500" />
-                      <span className="text-sm font-medium text-slate-600">Total Search Volume</span>
-                    </div>
-                    <Badge variant="secondary" className="bg-slate-200 text-slate-700">
-                      Scraped Data
-                    </Badge>
-                  </div>
-                  <p className="text-3xl font-bold text-slate-900">
-                    {keywords.reduce((sum, kw) => sum + kw.searchVolume, 0).toLocaleString()}
-                  </p>
-                  <p className="text-xs text-slate-500 mt-1">searches per month</p>
-                </div>
-
-                {/* Current Rank Card */}
-                <div className="bg-slate-50 rounded-xl p-5 border-2 border-slate-200">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <Hash className="size-5 text-slate-500" />
-                      <span className="text-sm font-medium text-slate-600">Average Current Rank</span>
-                    </div>
-                    <Badge variant="secondary" className="bg-slate-200 text-slate-700">
-                      Scraped Data
-                    </Badge>
-                  </div>
-                  <p className="text-3xl font-bold text-slate-900">
-                    #{(keywords.reduce((sum, kw) => sum + kw.currentRank, 0) / keywords.length).toFixed(1)}
-                  </p>
-                  <p className="text-xs text-slate-500 mt-1">across all keywords</p>
-                </div>
-
-                {/* Competitor Calls Card */}
-                <div className="bg-slate-50 rounded-xl p-5 border-2 border-slate-200">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <Phone className="size-5 text-slate-500" />
-                      <span className="text-sm font-medium text-slate-600">Competitor Leads (Top 3)</span>
-                    </div>
-                    <Badge variant="secondary" className="bg-slate-200 text-slate-700">
-                      Calculated
-                    </Badge>
-                  </div>
-                  <p className="text-3xl font-bold text-slate-900">
-                    {(() => {
-                      const totalVolume = keywords.reduce((sum, kw) => sum + kw.searchVolume, 0);
-                      const estimatedCalls = Math.round(totalVolume * 0.03); // 3% CTR estimate
-                      return estimatedCalls.toLocaleString();
-                    })()}
-                  </p>
-                  <p className="text-xs text-slate-500 mt-1">calls per month (est. 3% CTR)</p>
-                </div>
-              </div>
-
-              {/* RIGHT COLUMN - Interactive Sliders - DARK CONTROL PANEL */}
-              <div className="space-y-6">
-                <div className="control-panel-dark p-6 shadow-2xl">
-                  <div className="flex items-center gap-2 mb-6">
-                    <Settings className="size-5 text-yellow-400" />
-                    <h3 className="text-lg font-semibold text-white">Your Business Metrics</h3>
-                  </div>
-
-                  {/* Average Customer Value Slider */}
-                  <div className="bg-slate-700/50 rounded-xl p-5 border border-slate-600 mb-5">
-                    <div className="flex items-center gap-2 mb-3">
-                      <DollarSign className="size-5 text-yellow-400" />
-                      <label className="text-sm font-semibold text-white">
-                        What is a new customer worth to you?
-                      </label>
-                    </div>
-                    
-                    <div className="mb-4">
-                      <div className="flex items-baseline gap-2 mb-2">
-                        <span className="text-4xl font-bold text-yellow-400 font-mono">
-                          ${avgCustomerValue.toLocaleString()}
-                        </span>
-                        <span className="text-sm text-slate-300">per customer</span>
-                      </div>
-                    </div>
-
-                    <input
-                      type="range"
-                      min="100"
-                      max="5000"
-                      step="50"
-                      value={avgCustomerValue}
-                      onChange={(e) => setAvgCustomerValue(Number(e.target.value))}
-                      className="w-full h-3 bg-slate-600 rounded-lg appearance-none cursor-pointer"
-                      style={{
-                        background: `linear-gradient(to right, #FFD700 0%, #FFD700 ${((avgCustomerValue - 100) / 4900) * 100}%, #475569 ${((avgCustomerValue - 100) / 4900) * 100}%, #475569 100%)`
-                      }}
-                    />
-                    
-                    <div className="flex justify-between text-xs text-slate-400 mt-2">
-                      <span>$100</span>
-                      <span>$5,000</span>
-                    </div>
-                  </div>
-
-                  {/* Closing Rate Slider */}
-                  <div className="bg-slate-700/50 rounded-xl p-5 border border-slate-600">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Percent className="size-5 text-green-400" />
-                      <label className="text-sm font-semibold text-white">
-                        What % of calls do you close?
-                      </label>
-                    </div>
-                    
-                    <div className="mb-4">
-                      <div className="flex items-baseline gap-2 mb-2">
-                        <span className="text-4xl font-bold text-green-400 font-mono">
-                          {closingRate}%
-                        </span>
-                        <span className="text-sm text-slate-300">closing rate</span>
-                      </div>
-                    </div>
-
-                    <input
-                      type="range"
-                      min="5"
-                      max="50"
-                      step="1"
-                      value={closingRate}
-                      onChange={(e) => setClosingRate(Number(e.target.value))}
-                      className="w-full h-3 bg-slate-600 rounded-lg appearance-none cursor-pointer"
-                      style={{
-                        background: `linear-gradient(to right, #00C47E 0%, #00C47E ${((closingRate - 5) / 45) * 100}%, #475569 ${((closingRate - 5) / 45) * 100}%, #475569 100%)`
-                      }}
-                    />
-                    
-                    <div className="flex justify-between text-xs text-slate-400 mt-2">
-                      <span>5%</span>
-                      <span>50%</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Visual Connection Arrow */}
-                <div className="flex items-center justify-center py-2">
-                  <ArrowRight className="size-8 text-yellow-500 animate-pulse" strokeWidth={3} />
-                </div>
-              </div>
-            </div>
-
-            {/* Big Red Revenue Loss Number - MEDICAL REPORT STYLE */}
-            <div className="audit-card p-8 relative overflow-hidden shadow-2xl">
-              {/* Background decoration */}
-              <div className="absolute top-0 right-0 w-64 h-64 bg-red-200/20 rounded-full blur-3xl -mr-32 -mt-32"></div>
-              <div className="absolute bottom-0 left-0 w-48 h-48 bg-red-100/20 rounded-full blur-3xl -ml-24 -mb-24"></div>
-              
-              <div className="relative z-10">
-                <div className="text-center mb-4">
-                  <div className="flex items-center justify-center gap-2 mb-3">
-                    <AlertTriangle className="size-8 text-red-600" />
-                    <p className="text-sm font-bold text-red-700 uppercase tracking-wider">
-                      Monthly Revenue Opportunity
-                    </p>
-                    <AlertTriangle className="size-8 text-red-600" />
-                  </div>
-                </div>
-
-                <div className="text-center">
-                  <p className="audit-number text-6xl md:text-7xl text-red-600 mb-3">
-                    ${(() => {
-                      const totalVolume = keywords.reduce((sum, kw) => sum + kw.searchVolume, 0);
-                      const estimatedCalls = Math.round(totalVolume * 0.03); // 3% CTR
-                      const closedDeals = Math.round(estimatedCalls * (closingRate / 100));
-                      const monthlyRevenue = closedDeals * avgCustomerValue;
-                      return monthlyRevenue.toLocaleString();
-                    })()}
-                  </p>
-                  
-                  <div className="bg-white border-2 border-red-200 rounded-lg p-4 inline-block">
-                    <p className="text-sm text-slate-700 mb-1 font-semibold">
-                      Calculation Breakdown:
-                    </p>
-                    <div className="flex items-center justify-center gap-4 text-xs text-slate-600 font-mono">
-                      <span>
-                        {(() => {
-                          const totalVolume = keywords.reduce((sum, kw) => sum + kw.searchVolume, 0);
-                          const estimatedCalls = Math.round(totalVolume * 0.03);
-                          return estimatedCalls.toLocaleString();
-                        })()} calls
-                      </span>
-                      <span>×</span>
-                      <span>{closingRate}% close rate</span>
-                      <span>×</span>
-                      <span>${avgCustomerValue.toLocaleString()} per customer</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-6 text-center">
-                  <p className="text-sm text-red-700 font-semibold">
-                    ⚠️ This represents potential revenue currently being captured by competitors
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Call to Action */}
-            <div className="mt-6 text-center">
-              <p className="text-slate-600 text-sm">
-                💡 <span className="font-semibold">Pro Tip:</span> The search volume and competitor data are real market facts. 
-                Your closing rate and customer value make this <span className="font-bold text-slate-900">YOUR personalized opportunity.</span>
-              </p>
-            </div>
-          </div>
-        </Card>
-
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-10">
           {/* Advanced Tabs Navigation */}
           <div className="relative flex flex-col items-center py-6">
@@ -849,6 +669,253 @@ export default function MainApp() {
               competitor2Name={selectedClient?.competitor_2_name}
               competitor3Name={selectedClient?.competitor_3_name}
             />
+          </div>
+
+          {/* Profit Estimator Section */}
+          <div 
+            style={{ 
+              visibility: activeTab === 'map' ? 'visible' : 'hidden',
+              height: activeTab === 'map' ? 'auto' : '0',
+              overflow: 'hidden',
+              position: activeTab === 'map' ? 'relative' : 'absolute',
+              pointerEvents: activeTab === 'map' ? 'auto' : 'none'
+            }}
+          >
+            <Card className="overflow-hidden border-2 border-yellow-400 shadow-xl mb-10">
+              {/* Header */}
+              <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 p-6">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 rounded-lg bg-white/20 backdrop-blur-sm">
+                    <DollarSign className="size-6 text-white" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-white">Profit Estimator</h2>
+                </div>
+                <p className="text-white/90 text-sm">
+                  Adjust your business metrics below to see your potential monthly revenue opportunity
+                </p>
+              </div>
+
+              <div className="p-8">
+                {/* Two Column Layout */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                  {/* LEFT COLUMN - Static "Truth" Data */}
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Lock className="size-5 text-slate-400" />
+                      <h3 className="text-lg font-semibold text-slate-900">Market Data (Locked)</h3>
+                    </div>
+                    
+                    {/* Search Volume Card */}
+                    <div className="bg-slate-50 rounded-xl p-5 border-2 border-slate-200">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Search className="size-5 text-slate-500" />
+                          <span className="text-sm font-medium text-slate-600">Total Search Volume</span>
+                        </div>
+                        <Badge variant="secondary" className="bg-slate-200 text-slate-700">
+                          Scraped Data
+                        </Badge>
+                      </div>
+                      <p className="text-3xl font-bold text-slate-900">
+                        {keywords.reduce((sum, kw) => sum + kw.searchVolume, 0).toLocaleString()}
+                      </p>
+                      <p className="text-xs text-slate-500 mt-1">searches per month</p>
+                    </div>
+
+                    {/* Current Rank Card */}
+                    <div className="bg-slate-50 rounded-xl p-5 border-2 border-slate-200">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Hash className="size-5 text-slate-500" />
+                          <span className="text-sm font-medium text-slate-600">Average Current Rank</span>
+                        </div>
+                        <Badge variant="secondary" className="bg-slate-200 text-slate-700">
+                          Scraped Data
+                        </Badge>
+                      </div>
+                      <p className="text-3xl font-bold text-slate-900">
+                        #{(keywords.reduce((sum, kw) => sum + kw.currentRank, 0) / keywords.length).toFixed(1)}
+                      </p>
+                      <p className="text-xs text-slate-500 mt-1">across all keywords</p>
+                    </div>
+
+                    {/* Competitor Calls Card */}
+                    <div className="bg-slate-50 rounded-xl p-5 border-2 border-slate-200">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Phone className="size-5 text-slate-500" />
+                          <span className="text-sm font-medium text-slate-600">Competitor Leads (Top 3)</span>
+                        </div>
+                        <Badge variant="secondary" className="bg-slate-200 text-slate-700">
+                          Calculated
+                        </Badge>
+                      </div>
+                      <p className="text-3xl font-bold text-slate-900">
+                        {(() => {
+                          const totalVolume = keywords.reduce((sum, kw) => sum + kw.searchVolume, 0);
+                          const estimatedCalls = Math.round(totalVolume * 0.03); // 3% CTR estimate
+                          return estimatedCalls.toLocaleString();
+                        })()}
+                      </p>
+                      <p className="text-xs text-slate-500 mt-1">calls per month (est. 3% CTR)</p>
+                    </div>
+                  </div>
+
+                  {/* RIGHT COLUMN - Interactive Sliders - DARK CONTROL PANEL */}
+                  <div className="space-y-6">
+                    <div className="control-panel-dark p-6 shadow-2xl">
+                      <div className="flex items-center gap-2 mb-6">
+                        <Settings className="size-5 text-yellow-400" />
+                        <h3 className="text-lg font-semibold text-white">Your Business Metrics</h3>
+                      </div>
+
+                      {/* Average Customer Value Slider */}
+                      <div className="bg-slate-700/50 rounded-xl p-5 border border-slate-600 mb-5">
+                        <div className="flex items-center gap-2 mb-3">
+                          <DollarSign className="size-5 text-yellow-400" />
+                          <label className="text-sm font-semibold text-white">
+                            What is a new customer worth to you?
+                          </label>
+                        </div>
+                        
+                        <div className="mb-4">
+                          <div className="flex items-baseline gap-2 mb-2">
+                            <span className="text-4xl font-bold text-yellow-400 font-mono">
+                              ${avgCustomerValue.toLocaleString()}
+                            </span>
+                            <span className="text-sm text-slate-300">per customer</span>
+                          </div>
+                        </div>
+
+                        <input
+                          type="range"
+                          min="100"
+                          max="5000"
+                          step="50"
+                          value={avgCustomerValue}
+                          onChange={(e) => setAvgCustomerValue(Number(e.target.value))}
+                          className="w-full h-3 bg-slate-600 rounded-lg appearance-none cursor-pointer"
+                          style={{
+                            background: `linear-gradient(to right, #FFD700 0%, #FFD700 ${((avgCustomerValue - 100) / 4900) * 100}%, #475569 ${((avgCustomerValue - 100) / 4900) * 100}%, #475569 100%)`
+                          }}
+                        />
+                        
+                        <div className="flex justify-between text-xs text-slate-400 mt-2">
+                          <span>$100</span>
+                          <span>$5,000</span>
+                        </div>
+                      </div>
+
+                      {/* Closing Rate Slider */}
+                      <div className="bg-slate-700/50 rounded-xl p-5 border border-slate-600">
+                        <div className="flex items-center gap-2 mb-3">
+                          <Percent className="size-5 text-green-400" />
+                          <label className="text-sm font-semibold text-white">
+                            What % of calls do you close?
+                          </label>
+                        </div>
+                        
+                        <div className="mb-4">
+                          <div className="flex items-baseline gap-2 mb-2">
+                            <span className="text-4xl font-bold text-green-400 font-mono">
+                              {closingRate}%
+                            </span>
+                            <span className="text-sm text-slate-300">closing rate</span>
+                          </div>
+                        </div>
+
+                        <input
+                          type="range"
+                          min="5"
+                          max="50"
+                          step="1"
+                          value={closingRate}
+                          onChange={(e) => setClosingRate(Number(e.target.value))}
+                          className="w-full h-3 bg-slate-600 rounded-lg appearance-none cursor-pointer"
+                          style={{
+                            background: `linear-gradient(to right, #00C47E 0%, #00C47E ${((closingRate - 5) / 45) * 100}%, #475569 ${((closingRate - 5) / 45) * 100}%, #475569 100%)`
+                          }}
+                        />
+                        
+                        <div className="flex justify-between text-xs text-slate-400 mt-2">
+                          <span>5%</span>
+                          <span>50%</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Visual Connection Arrow */}
+                    <div className="flex items-center justify-center py-2">
+                      <ArrowRight className="size-8 text-yellow-500 animate-pulse" strokeWidth={3} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Big Red Revenue Loss Number - MEDICAL REPORT STYLE */}
+                <div className="audit-card p-8 relative overflow-hidden shadow-2xl">
+                  {/* Background decoration */}
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-red-200/20 rounded-full blur-3xl -mr-32 -mt-32"></div>
+                  <div className="absolute bottom-0 left-0 w-48 h-48 bg-red-100/20 rounded-full blur-3xl -ml-24 -mb-24"></div>
+                  
+                  <div className="relative z-10">
+                    <div className="text-center mb-4">
+                      <div className="flex items-center justify-center gap-2 mb-3">
+                        <AlertTriangle className="size-8 text-red-600" />
+                        <p className="text-sm font-bold text-red-700 uppercase tracking-wider">
+                          Monthly Revenue Opportunity
+                        </p>
+                        <AlertTriangle className="size-8 text-red-600" />
+                      </div>
+                    </div>
+
+                    <div className="text-center">
+                      <p className="audit-number text-6xl md:text-7xl text-red-600 mb-3">
+                        ${(() => {
+                          const totalVolume = keywords.reduce((sum, kw) => sum + kw.searchVolume, 0);
+                          const estimatedCalls = Math.round(totalVolume * 0.03); // 3% CTR
+                          const closedDeals = Math.round(estimatedCalls * (closingRate / 100));
+                          const monthlyRevenue = closedDeals * avgCustomerValue;
+                          return monthlyRevenue.toLocaleString();
+                        })()}
+                      </p>
+                      
+                      <div className="bg-white border-2 border-red-200 rounded-lg p-4 inline-block">
+                        <p className="text-sm text-slate-700 mb-1 font-semibold">
+                          Calculation Breakdown:
+                        </p>
+                        <div className="flex items-center justify-center gap-4 text-xs text-slate-600 font-mono">
+                          <span>
+                            {(() => {
+                              const totalVolume = keywords.reduce((sum, kw) => sum + kw.searchVolume, 0);
+                              const estimatedCalls = Math.round(totalVolume * 0.03);
+                              return estimatedCalls.toLocaleString();
+                            })()} calls
+                          </span>
+                          <span>×</span>
+                          <span>{closingRate}% close rate</span>
+                          <span>×</span>
+                          <span>${avgCustomerValue.toLocaleString()} per customer</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-6 text-center">
+                      <p className="text-sm text-red-700 font-semibold">
+                        ⚠️ This represents potential revenue currently being captured by competitors
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Call to Action */}
+                <div className="mt-6 text-center">
+                  <p className="text-slate-600 text-sm">
+                    💡 <span className="font-semibold">Pro Tip:</span> The search volume and competitor data are real market facts. 
+                    Your closing rate and customer value make this <span className="font-bold text-slate-900">YOUR personalized opportunity.</span>
+                  </p>
+                </div>
+              </div>
+            </Card>
           </div>
 
           <TabsContent value="keywords" className="space-y-6">
