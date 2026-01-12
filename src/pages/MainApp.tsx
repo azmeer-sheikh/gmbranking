@@ -13,6 +13,7 @@ import KeywordsView from '../components/KeywordsView';
 import AnalyticsView from '../components/AnalyticsView';
 import SeasonalCampaignPlanner from '../components/SeasonalCampaignPlanner';
 import MobileDesktopSplit from '../components/MobileDesktopSplit';
+import LoginPage from '../components/LoginPage';
 
 import { businessCategories, getCategoryById } from '../lib/business-categories';
 import { generateKeywordsForCategory } from '../lib/sample-data';
@@ -260,6 +261,10 @@ export default function MainApp() {
     }
   }, []);
 
+  // If not authenticated, show login page
+  if (!isAuthenticated) {
+    return <LoginPage onLogin={handleLogin} />;
+  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -291,10 +296,10 @@ export default function MainApp() {
               
               {/* Logout Section */}
               <div className="pl-6 border-l border-slate-300 flex items-center gap-3">
-                <div className="text-right">
+                {/* <div className="text-right">
                   <p className="text-xs text-slate-500 uppercase tracking-wider">Logged In As</p>
                   <p className="text-sm font-semibold text-slate-900 capitalize">{authenticatedUser}</p>
-                </div>
+                </div> */}
                 <Button
                   onClick={handleLogout}
                   variant="outline"
@@ -671,7 +676,8 @@ export default function MainApp() {
             />
           </div>
 
-          {/* Profit Estimator Section */}
+          {/* Profit Estimator Section (disabled, now shown in GoogleMapView) */}
+          {false && (
           <div 
             style={{ 
               visibility: activeTab === 'map' ? 'visible' : 'hidden',
@@ -917,6 +923,9 @@ export default function MainApp() {
               </div>
             </Card>
           </div>
+          )}
+        
+
 
           <TabsContent value="keywords" className="space-y-6">
             <KeywordsView category={category} keywords={keywords} />
