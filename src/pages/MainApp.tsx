@@ -283,9 +283,7 @@ export default function MainApp() {
                 Financial Audit Report
               </Badge>
             </div>
-            
-            {/* Right: Prepared For + Date + Logout */}
-            <div className="flex items-center gap-6">
+                        <div className="flex items-center gap-6">
               <div className="text-right font-mono">
                 <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Prepared For</p>
                 <p className="text-lg font-semibold text-slate-900">{selectedClient?.business_name || 'Select a Business'}</p>
@@ -296,10 +294,6 @@ export default function MainApp() {
               
               {/* Logout Section */}
               <div className="pl-6 border-l border-slate-300 flex items-center gap-3">
-                {/* <div className="text-right">
-                  <p className="text-xs text-slate-500 uppercase tracking-wider">Logged In As</p>
-                  <p className="text-sm font-semibold text-slate-900 capitalize">{authenticatedUser}</p>
-                </div> */}
                 <Button
                   onClick={handleLogout}
                   variant="outline"

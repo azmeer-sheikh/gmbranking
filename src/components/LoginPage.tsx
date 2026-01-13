@@ -71,9 +71,9 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             {loading ? 'Signing in…' : 'Login'}
           </Button>
 
-          <div className="text-xs text-slate-500 text-center mt-4">
+          {/* <div className="text-xs text-slate-500 text-center mt-4">
             Demo: <span className="font-semibold">demo</span> / <span className="font-semibold">demo123</span>
-          </div>
+          </div> */}
         </form>
       </Card>
     </div>

@@ -117,8 +117,7 @@ const GoogleMapView = React.memo(function GoogleMapView({ category, keywords, cl
         if (marker && marker.setMap) {
           marker.setMap(null);
         }
-      } catch (error) {
-        // Silently ignore - marker might already be removed
+      } catch (error) {        console.error('Error removing marker:', error);
       }
     });
     markersRef.current = [];
@@ -142,7 +141,7 @@ const GoogleMapView = React.memo(function GoogleMapView({ category, keywords, cl
 
         // Create dashed circle path (50km radius)
         const radius = 50000; // 50 kilometers in meters
-        const numPoints = 100; // Number of points to create smooth circle
+        const numPoints = 100; 
         const circleCoords = [];
         
         for (let i = 0; i <= numPoints; i++) {
