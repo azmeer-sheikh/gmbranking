@@ -550,16 +550,16 @@ const GoogleMapView = React.memo(function GoogleMapView({ category, keywords, cl
       />
 
       {/* Profit Estimator Section */}
-      <Card className="overflow-hidden border-2 border-yellow-400 shadow-xl">
+      <Card className="overflow-hidden border-2 border-slate-400 shadow-xl">
         {/* Header */}
-        <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 p-6">
+        <div className="bg-slate-100 text-slate-600 p-6">
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 rounded-lg bg-white/20 backdrop-blur-sm">
-              <DollarSign className="size-6 text-white" />
+              <DollarSign className="size-6" />
             </div>
-            <h2 className="text-2xl font-bold text-white">Profit Estimator</h2>
+            <h2 className="text-2xl font-bold">Profit Estimator</h2>
           </div>
-          <p className="text-white/90 text-sm">
+          <p className=" text-sm">
             Adjust your business metrics below to see your potential monthly revenue opportunity
           </p>
         </div>

@@ -563,32 +563,32 @@ export default function MainApp() {
 
       {/* Active Filter Indicator */}
       {selectedClient && (
-        <div className="bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 border-b-2 border-yellow-700 shadow-lg">
+        <div className="bg-slate-100 border-b border-slate-300 shadow-[0_8px_24px_rgba(15,23,42,0.08)] text-slate-900">
           <div className="container mx-auto px-8 py-5">
-            <div className="flex items-center justify-between text-white">
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-5">
-                <div className="p-2.5 bg-white/20 rounded-xl backdrop-blur-sm border border-white/30 shadow-lg">
-                  <Building2 className="size-5.5" />
+                <div className="p-2.5 rounded-xl bg-white shadow-[0_10px_25px_rgba(15,23,42,0.08)] border border-slate-200">
+                  <Building2 className="size-5.5 text-slate-800" />
                 </div>
                 <div>
-                  <p className="text-xs uppercase tracking-wider opacity-95 mb-0.5" style={{ fontWeight: 600 }}>Active Client</p>
-                  <p className="text-lg" style={{ fontWeight: 700 }}>{selectedClient.business_name}</p>
+                  <p className="text-xs uppercase tracking-wider text-slate-500 mb-0.5" style={{ fontWeight: 700 }}>Active Client</p>
+                  <p className="text-lg text-slate-900" style={{ fontWeight: 800 }}>{selectedClient.business_name}</p>
                 </div>
-                <div className="h-10 w-px bg-white/30 mx-1" />
-                <div className="flex items-center gap-6 text-sm">
-                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/15 backdrop-blur-sm">
-                    <MapPin className="size-4" />
-                    <span style={{ fontWeight: 600 }}>{selectedClient.area}</span>
+                <div className="h-10 w-px bg-slate-200 mx-1" />
+                <div className="flex items-center gap-4 text-sm text-slate-800">
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white shadow-sm border border-slate-200">
+                    <MapPin className="size-4 text-slate-700" />
+                    <span style={{ fontWeight: 700 }}>{selectedClient.area}</span>
                   </div>
                   {selectedClient.category && (
-                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/15 backdrop-blur-sm">
-                      <Hash className="size-4" />
-                      <span style={{ fontWeight: 600 }}>{selectedClient.category}</span>
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white shadow-sm border border-slate-200">
+                      <Hash className="size-4 text-slate-700" />
+                      <span style={{ fontWeight: 700 }}>{selectedClient.category}</span>
                     </div>
                   )}
-                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/15 backdrop-blur-sm">
-                    <TrendingUp className="size-4" />
-                    <span style={{ fontWeight: 600 }}>Rank: #{calculateAverageRank()}</span>
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white shadow-sm border border-slate-200">
+                    <TrendingUp className="size-4 text-slate-700" />
+                    <span style={{ fontWeight: 700 }}>Rank: #{calculateAverageRank()}</span>
                   </div>
                 </div>
               </div>
@@ -596,7 +596,7 @@ export default function MainApp() {
                 onClick={handleClearSearch}
                 variant="outline"
                 size="sm"
-                className="gap-2 bg-white/20 border-white/40 text-white hover:bg-white/30 hover:border-white/60 h-10 px-5 backdrop-blur-sm shadow-lg transition-all hover:scale-105"
+                className="gap-2 bg-white text-slate-800 border-slate-300 hover:bg-slate-50 hover:border-slate-400 h-10 px-5 shadow-md transition-all hover:scale-105"
               >
                 <X className="size-4" />
                 View All Businesses
@@ -683,14 +683,14 @@ export default function MainApp() {
           >
             <Card className="overflow-hidden border-2 border-yellow-400 shadow-xl mb-10">
               {/* Header */}
-              <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 p-6">
+              <div className="bg-slate-800 p-6">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="p-2 rounded-lg bg-white/20 backdrop-blur-sm">
-                    <DollarSign className="size-6 text-white" />
+                    <DollarSign className="size-6 " />
                   </div>
-                  <h2 className="text-2xl font-bold text-white">Profit Estimator</h2>
+                  <h2 className="text-2xl font-bold ">Profit Estimator</h2>
                 </div>
-                <p className="text-white/90 text-sm">
+                <p className="text-sm">
                   Adjust your business metrics below to see your potential monthly revenue opportunity
                 </p>
               </div>
